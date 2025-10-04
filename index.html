@@ -1,1 +1,278 @@
-EasyPay
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIK Karlskoga - Kassasystem</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 1.5rem;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .cards {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .logo {
+                width: 90px;
+                height: 90px;
+            }
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+        }
+        
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        .card h2 {
+            color: #1e3c72;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+        
+        .card p {
+            color: #666;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #667eea;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-decoration: none;
+        }
+        
+        .card-link::after {
+            content: '→';
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover .card-link::after {
+            transform: translateX(5px);
+        }
+        
+        .footer {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            color: white;
+        }
+        
+        .footer p {
+            margin: 0;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .footer a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            transition: border-color 0.3s ease;
+        }
+        
+        .footer a:hover {
+            border-bottom-color: white;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        
+        .feature-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://sportality.cdn.s8y.se/team-logos/bik1_bik.svg" alt="BIK Karlskoga" class="logo">
+            <h1>BIK Karlskoga</h1>
+            <p>Kassasystem & Försäljningsstatistik</p>
+        </div>
+        
+        <div class="cards">
+            <a href="kassa.html" class="card">
+                <span class="card-icon">🛒</span>
+                <h2>Kassasystem</h2>
+                <p>Registrera försäljning, skapa Swish QR-koder och generera digitala kvitton för kunder.</p>
+                <span class="card-link">Öppna kassan</span>
+                
+                <div class="features">
+                    <div class="feature">
+                        <span class="feature-icon">💳</span>
+                        <span>Swish-betalning</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">🧾</span>
+                        <span>Digitala kvitton</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">📱</span>
+                        <span>Mobilanpassad</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">⚡</span>
+                        <span>Snabb hantering</span>
+                    </div>
+                </div>
+            </a>
+            
+            <a href="stats.html" class="card">
+                <span class="card-icon">📊</span>
+                <h2>Försäljningsstatistik</h2>
+                <p>Visa försäljningsdata, generera rapporter och analysera försäljningstrender över tid.</p>
+                <span class="card-link">Visa statistik</span>
+                
+                <div class="features">
+                    <div class="feature">
+                        <span class="feature-icon">📈</span>
+                        <span>Grafer & diagram</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">📄</span>
+                        <span>Excel-export</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">🔍</span>
+                        <span>Avancerade filter</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">🖨️</span>
+                        <span>Utskriftsvänlig</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        <div class="footer">
+            <p>
+                Byggt med Google Sheets som backend | 
+                <a href="https://github.com/andersasplundberggren/easypay" target="_blank">GitHub</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
