@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>BIK Karlskoga - Café Kassa & Swish QR</title>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+        }
+        
+        @media (min-width: 769px) {
+            body {
+                padding: 20px;
+            }
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .header .logo {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 10px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 1.8em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            margin: 5px 0 0 0;
+            font-size: 1em;
+            opacity: 0.9;
+        }
+        
+        @media (min-width: 769px) {
+            .header {
+                margin-bottom: 30px;
+            }
+            
+            .header .logo {
+                width: 80px;
+                height: 80px;
+                margin-bottom: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2.5em;
+            }
+            
+            .header p {
+                font-size: 1.2em;
+            }
+        }
+        
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        @media (min-width: 769px) {
+            .main-container {
+                grid-template-columns: 1fr 1fr;
+                gap: 30px;
+            }
+        }
+        
+        .section {
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .section h2 {
+            margin: 0 0 15px 0;
+            color: #1e3c72;
+            border-bottom: 3px solid #2a5298;
+            padding-bottom: 8px;
+            font-size: 1.3em;
+        }
+        
+        @media (min-width: 769px) {
+            .section {
+                padding: 25px;
+            }
+            
+            .section h2 {
+                margin: 0 0 20px 0;
+                padding-bottom: 10px;
+                font-size: 1.5em;
+            }
+        }
+        
+        /* KASSASYSTEM */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        @media (min-width: 480px) {
+            .menu-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .menu-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                margin-bottom: 20px;
+            }
+        }
+        
+        .menu-item {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            touch-action: manipulation;
+            user-select: none;
+            min-height: 70px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        @media (min-width: 769px) {
+            .menu-item {
+                padding: 15px 10px;
+                min-height: auto;
+            }
+        }
+        
+        .menu-item:active {
+            background: #2a5298 !important;
+            color: white !important;
+            transform: scale(0.95);
+        }
+        
+        .menu-item .name {
+            font-weight: bold;
+            font-size: 12px;
+            margin-bottom: 4px;
+            line-height: 1.2;
+        }
+        
+        .menu-item .price {
+            color: #28a745;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .menu-item .vat-info {
+            font-size: 10px;
+            color: #666;
+            margin-top: 2px;
+        }
+        
+        @media (min-width: 769px) {
+            .menu-item .name {
+                font-size: 14px;
+                margin-bottom: 5px;
+            }
+            
+            .menu-item .price {
+                font-size: 16px;
+            }
+            
+            .menu-item .vat-info {
+                font-size: 11px;
+            }
+        }
+        
+        .menu-item:active .price {
+            color: white !important;
+        }
+        
+        .menu-item:active .vat-info {
+            color: rgba(255,255,255,0.8) !important;
+        }
+        
+        .order-summary {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 15px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        @media (min-width: 769px) {
+            .order-summary {
+                padding: 15px;
+                margin: 20px 0;
+                max-height: 300px;
+            }
+        }
+        
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid #dee2e6;
+            font-size: 14px;
+        }
+        
+        @media (min-width: 769px) {
+            .order-item {
+                padding: 8px 0;
+                font-size: 16px;
+            }
+        }
+        
+        .order-item:last-child {
+            border-bottom: none;
+        }
+        
+        .order-item .remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 10px;
+            cursor: pointer;
+            font-size: 14px;
+            min-width: 30px;
+            min-height: 30px;
+        }
+        
+        .total {
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+            color: #1e3c72;
+            background: #e7f3ff;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 12px 0;
+        }
+        
+        @media (min-width: 769px) {
+            .total {
+                font-size: 1.4em;
+                padding: 15px;
+                margin: 15px 0;
+            }
+        }
+        
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        @media (min-width: 480px) {
+            .action-buttons {
+                flex-direction: row;
+                gap: 10px;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .action-buttons {
+                margin-top: 15px;
+            }
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px 15px;
+            font-size: 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            touch-action: manipulation;
+            user-select: none;
+            min-height: 45px;
+            font-weight: 600;
+        }
+        
+        @media (min-width: 769px) {
+            .btn {
+                padding: 15px 20px;
+                font-size: 16px;
+                min-height: 50px;
+            }
+        }
+        
+        .btn:active {
+            transform: scale(0.95);
+        }
+        
+        .btn-primary {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-blue {
+            background: #007bff;
+            color: white;
+        }
+        
+        /* QR-SEKTION */
+        .qr-form {
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 12px;
+        }
+        
+        @media (min-width: 769px) {
+            .qr-form {
+                margin-bottom: 20px;
+            }
+            
+            .form-group {
+                margin-bottom: 15px;
+            }
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        @media (min-width: 769px) {
+            label {
+                margin-bottom: 5px;
+                font-size: 16px;
+            }
+        }
+        
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            min-height: 45px;
+        }
+        
+        @media (min-width: 769px) {
+            input[type="text"], input[type="number"] {
+                padding: 15px;
+                min-height: 50px;
+            }
+        }
+        
+        input[readonly] {
+            background-color: #f0f0f0;
+        }
+        
+        .qr-result {
+            text-align: center;
+            margin: 15px 0;
+            padding: 15px;
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            background-color: #fafafa;
+            display: none;
+            width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        
+        @media (min-width: 769px) {
+            .qr-result {
+                margin: 20px 0;
+                padding: 20px;
+            }
+        }
+        
+        .qr-image {
+            max-width: 100%;
+            height: auto;
+            width: auto;
+            max-height: 250px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 15px auto;
+            display: block;
+        }
+        
+        @media (min-width: 769px) {
+            .qr-image {
+                max-height: 300px;
+                margin: 20px auto;
+            }
+        }
+        
+        #qrcode {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        .status {
+            margin: 8px 0;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+            font-size: 14px;
+        }
+        
+        @media (min-width: 769px) {
+            .status {
+                margin: 10px 0;
+                padding: 15px;
+                font-size: 16px;
+            }
+        }
+        
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+        
+        .swish-data {
+            background-color: #fff3e0;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+            font-family: monospace;
+            font-size: 11px;
+            word-break: break-all;
+            text-align: left;
+        }
+        
+        @media (min-width: 769px) {
+            .swish-data {
+                padding: 15px;
+                margin-top: 15px;
+                font-size: 12px;
+            }
+        }
+        
+        /* FULLSKÄRMS QR-OVERLAY */
+        .qr-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        
+        .qr-overlay-content {
+            text-align: center;
+            padding: 20px;
+            color: white;
+            max-width: 90%;
+            max-height: 90%;
+        }
+        
+        .qr-overlay h2 {
+            margin: 0 0 20px 0;
+            color: white;
+            font-size: 1.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        @media (min-width: 769px) {
+            .qr-overlay h2 {
+                font-size: 2em;
+                margin: 0 0 30px 0;
+            }
+        }
+        
+        .qr-overlay-image {
+            max-width: 100%;
+            max-height: 60vh;
+            width: auto;
+            height: auto;
+            border: 3px solid white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            background: white;
+            padding: 20px;
+        }
+        
+        @media (min-width: 769px) {
+            .qr-overlay-image {
+                max-height: 70vh;
+                padding: 30px;
+            }
+        }
+        
+        .qr-overlay-text {
+            margin-top: 20px;
+            font-size: 1.1em;
+            opacity: 0.9;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        @media (min-width: 769px) {
+            .qr-overlay-text {
+                font-size: 1.3em;
+                margin-top: 30px;
+            }
+        }
+        
+        .qr-overlay-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 2em;
+            font-weight: bold;
+            cursor: pointer;
+            background: rgba(0,0,0,0.5);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid white;
+        }
+        
+        @media (min-width: 769px) {
+            .qr-overlay-close {
+                font-size: 2.5em;
+                width: 60px;
+                height: 60px;
+            }
+        }
+
+        /* KVITTO STYLING */
+        .receipt-page {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            z-index: 2000;
+            overflow-y: auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .receipt-logo {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 15px;
+        }
+
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        /* LOADING INDICATOR */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .loading::after {
+            content: '...';
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { content: '.'; }
+            33% { content: '..'; }
+            66% { content: '...'; }
+        }
+    </style>
+</head>
+<body>
+    <!-- KVITTO-SIDA (dold som standard) -->
+    <div class="receipt-page" id="receiptPage">
+        <div style="max-width: 400px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <img src="https://sportality.cdn.s8y.se/team-logos/bik1_bik.svg" alt="BIK Karlskoga" style="width: 80px; height: 80px;">
+                <h1 style="color: white; margin: 10px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">BIK Karlskoga café</h1>
+                <p style="color: white; opacity: 0.9;">Digitalt kvitto</p>
+            </div>
+            
+            <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 8px 25px rgba(0,0,0,0.15);">
+                <div id="receiptContent">
+                    <!-- Kvittoinnehåll fylls i via JavaScript -->
+                </div>
+                
+                <div style="text-align: center; color: #666; font-size: 0.9em; margin-top: 20px;">
+                    <p>Tack för ditt köp!</p>
+                    <p>Välkommen åter till BIK Karlskoga café</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HUVUDSIDAN -->
+    <div id="mainPage">
+        <div class="header">
+            <img src="https://sportality.cdn.s8y.se/team-logos/bik1_bik.svg" alt="BIK Karlskoga" class="logo">
+            <h1>BIK Karlskoga café</h1>
+            <p>Kassa & Swishbetalning</p>
+        </div>
+
+        <div class="main-container">
+            <!-- KASSASYSTEM -->
+            <div class="section">
+                <h2>Kassasystem</h2>
+                
+                <div class="menu-grid" id="menuGrid">
+                    <div class="loading">Laddar produkter från Google Sheets</div>
+                </div>
+                
+                <div class="order-summary" id="orderSummary">
+                    <p style="text-align: center; color: #6c757d;">Ingen beställning ännu...</p>
+                </div>
+                
+                <div class="total" id="totalAmount">Totalt: 0 kr</div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-blue" id="transferBtn">Skapa Swish QR</button>
+                    <button class="btn btn-danger" id="clearBtn">Rensa allt</button>
+                </div>
+            </div>
+
+            <!-- QR-KODSGENERATOR -->
+            <div class="section">
+                <h2>Swish QR-kod</h2>
+                
+                <!-- QR-RESULTAT FLYTTAT ÖVERST -->
+                <div class="qr-result" id="qrContainer">
+                    <h3>Swish QR-kod:</h3>
+                    <div id="qrcode">
+                        <img id="qrImage" class="qr-image" style="display: none;" alt="Swish QR-kod">
+                    </div>
+                    <div class="swish-data" id="swishData"></div>
+                    <div class="qr-actions" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
+                        <button class="btn btn-secondary" id="downloadBtn">
+                            Visa QR Fullskärm
+                        </button>
+                        <button class="btn btn-primary" id="paymentReceivedBtn" style="display: none;">
+                            Betalning mottagen - Skapa kvitto
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- KVITTO QR-KOD -->
+                <div class="qr-result" id="receiptContainer" style="display: none;">
+                    <h3>Kvitto QR-kod:</h3>
+                    <div id="receiptQrcode">
+                        <img id="receiptQrImage" class="qr-image" style="display: none;" alt="Kvitto QR-kod">
+                    </div>
+                    <p style="color: #666; font-size: 14px; margin: 10px 0;">
+                        Kunden scannar denna QR-kod för att få sitt kvitto
+                    </p>
+                    <div class="receipt-actions" style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
+                        <button class="btn btn-secondary" id="showReceiptFullscreenBtn">
+                            Visa kvitto-QR fullskärm
+                        </button>
+                        <button class="btn btn-blue" id="printReceiptBtn">
+                            Skriv ut papperskvitto
+                        </button>
+                        <button class="btn btn-secondary" id="previewReceiptBtn">
+                            Förhandsgranska kvitto
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="qr-form">
+                    <div class="form-group">
+                        <label for="swishNumber">Swish-nummer:</label>
+                        <input type="text" id="swishNumber" value="1234701777" readonly>
+                        <small style="color: #666;">BIK Karlskoga café</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="amount">Belopp (SEK):</label>
+                        <input type="number" id="amount" step="0.01" min="0" placeholder="Fylls i från kassan">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="message">Meddelande:</label>
+                        <input type="text" id="message" placeholder="t.ex. Bord 12 - BIK Karlskoga" maxlength="70">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cashierName">Kassör:</label>
+                        <input type="text" id="cashierName" placeholder="Ditt namn" maxlength="50">
+                    </div>
+                    
+                    <button class="btn btn-primary" id="generateBtn" style="width: 100%;">
+                        Generera QR-kod
+                    </button>
+                </div>
+                
+                <div class="status" id="statusMsg"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FULLSKÄRMS QR-OVERLAY -->
+    <div class="qr-overlay" id="qrOverlay">
+        <div class="qr-overlay-close" id="qrOverlayClose">×</div>
+        <div class="qr-overlay-content">
+            <h2>BIK Karlskoga</h2>
+            <img id="qrOverlayImage" class="qr-overlay-image" alt="Swish QR-kod">
+            <div class="qr-overlay-text">
+                <p><strong>Scanna med Swish-appen</strong></p>
+                <p>Tryck var som helst för att stänga</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- FULLSKÄRMS KVITTO-OVERLAY -->
+    <div class="qr-overlay" id="receiptOverlay" style="display: none;">
+        <div class="qr-overlay-close" id="receiptOverlayClose">×</div>
+        <div class="qr-overlay-content" style="max-width: 500px; max-height: 90vh; overflow-y: auto;">
+            <div id="receiptOverlayContent" style="background: white; border-radius: 15px; padding: 25px; color: black; text-align: left;">
+                <!-- Kvittoinnehåll fylls i via JavaScript -->
+            </div>
+            <div style="margin-top: 20px; color: white; text-align: center;">
+                <p>Tryck var som helst för att stänga</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // GOOGLE SHEETS API KONFIGURATION
+        // ========================================
+        // VIKTIGT: BYT UT DENNA URL MOT DIN WEB APP URL!
+        const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwWADYHeT2clN3DSHnIvp-d24APaKiacETGSWK4EecuzjoKru1RbB7a3MsxuqIBrPw/exec';
+        
+        // ========================================
+        // GLOBALA VARIABLER
+        // ========================================
+        let currentOrder = [];
+        let currentReceiptId = null;
+        let currentReceiptData = null;
+        let products = [];
+        
+        // ========================================
+        // BACKEND FUNKTIONER - GOOGLE SHEETS
+        // ========================================
+        
+        // Hämta produkter från Google Sheets
+        async function loadProducts() {
+            try {
+                showStatus('Laddar produkter från Google Sheets...', 'success');
+                
+                const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=getProducts`);
+                const result = await response.json();
+                
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+                
+                products = result.data || [];
+                displayProducts(products);
+                showStatus(`${products.length} produkter laddade från Google Sheets!`, 'success');
+            } catch (error) {
+                console.error('Fel vid hämtning av produkter:', error);
+                showStatus('Kunde inte ladda produkter. Använder backup.', 'error');
+                displayBackupProducts();
+            }
+        }
+        
+        // Visa produkter i menyn
+        function displayProducts(productList) {
+            const menuGrid = document.getElementById('menuGrid');
+            menuGrid.innerHTML = '';
+            
+            productList.forEach(product => {
+                const menuItem = document.createElement('div');
+                menuItem.className = 'menu-item';
+                menuItem.dataset.productId = product.id;
+                menuItem.dataset.name = product.name;
+                menuItem.dataset.price = product.price;
+                menuItem.dataset.vatRate = product.vat_rate || 12;
+                
+                menuItem.innerHTML = `
+                    <div class="name">${product.name}</div>
+                    <div class="price">${product.price} kr</div>
+                    <div class="vat-info">Moms ${product.vat_rate || 12}%</div>
+                `;
+                
+                menuItem.addEventListener('click', function() {
+                    addToOrder(
+                        product.name, 
+                        parseFloat(product.price),
+                        product.vat_rate || 12,
+                        product.id
+                    );
+                });
+                
+                menuGrid.appendChild(menuItem);
+            });
+        }
+        
+        // Backup produkter om Google Sheets inte fungerar
+        function displayBackupProducts() {
+            const backupProducts = [
+                { id: 'backup_1', name: 'Kaffe', price: 25, vat_rate: 12 },
+                { id: 'backup_2', name: 'Te', price: 20, vat_rate: 12 },
+                { id: 'backup_3', name: 'Läsk', price: 30, vat_rate: 12 },
+                { id: 'backup_4', name: 'Vatten', price: 15, vat_rate: 12 },
+                { id: 'backup_5', name: 'Smörgås', price: 45, vat_rate: 12 },
+                { id: 'backup_6', name: 'Varmkorv', price: 35, vat_rate: 12 },
+                { id: 'backup_7', name: 'Hamburgare', price: 65, vat_rate: 12 },
+                { id: 'backup_8', name: 'Chips', price: 20, vat_rate: 12 },
+                { id: 'backup_9', name: 'Glass', price: 25, vat_rate: 12 },
+                { id: 'backup_10', name: 'Kaka', price: 30, vat_rate: 12 },
+                { id: 'backup_11', name: 'Godis', price: 15, vat_rate: 12 },
+                { id: 'backup_12', name: 'Öl (alkoholfri)', price: 35, vat_rate: 12 }
+            ];
+            displayProducts(backupProducts);
+        }
+        
+        // Spara köp till Google Sheets
+        async function savePurchaseToBackend() {
+            try {
+                const cashierName = document.getElementById('cashierName').value || 'Anonym';
+                const totalAmount = currentOrder.reduce((sum, item) => sum + item.price, 0);
+                
+                // Beräkna moms
+                let vatAmount = 0;
+                const itemsWithVat = currentOrder.map(item => {
+                    const vatRate = item.vatRate || 12;
+                    const itemVat = (item.price * vatRate) / (100 + vatRate);
+                    vatAmount += itemVat;
+                    
+                    return {
+                        name: item.name,
+                        quantity: 1,
+                        price: item.price,
+                        vat_rate: vatRate,
+                        total: item.price,
+                        vat_amount: parseFloat(itemVat.toFixed(2))
+                    };
+                });
+                
+                const purchaseData = {
+                    items: itemsWithVat,
+                    amount: parseFloat((totalAmount - vatAmount).toFixed(2)),
+                    vat_amount: parseFloat(vatAmount.toFixed(2)),
+                    total_amount: totalAmount,
+                    status: 'completed',
+                    cashier_name: cashierName,
+                    swish_reference: 'SWISH_' + Date.now()
+                };
+                
+                console.log('Försöker spara köp till Google Sheets:', purchaseData);
+                
+                const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=createPurchase`, {
+                    method: 'POST',
+                    body: JSON.stringify(purchaseData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+                
+                console.log('Köp sparat i Google Sheets:', result.data);
+                showStatus('Köp registrerat i Google Sheets!', 'success');
+                return result.data;
+            } catch (error) {
+                console.error('Fel vid sparande av köp:', error);
+                
+                alert('OBS! Köpet kunde inte sparas i Google Sheets.\n\nFel: ' + error.message + '\n\nKontrollera:\n1. Att Web App URL är korrekt\n2. Att Apps Script är deployt\n3. Konsolen för mer info');
+                
+                return {
+                    id: 'local_' + Date.now(),
+                    created_at: new Date().toISOString(),
+                    total_amount: currentOrder.reduce((sum, item) => sum + item.price, 0)
+                };
+            }
+        }
+        
+        // ========================================
+        // UI FUNKTIONER
+        // ========================================
+        
+        // Visa statusmeddelanden
+        function showStatus(message, type = 'success') {
+            const statusEl = document.getElementById('statusMsg');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+            statusEl.style.display = 'block';
+            
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 4000);
+        }
+        
+        // Lägg till produkt i beställning
+        function addToOrder(name, price, vatRate = 12, productId = null) {
+            currentOrder.push({
+                name, 
+                price, 
+                vatRate,
+                productId,
+                timestamp: new Date().toISOString()
+            });
+            updateOrderDisplay();
+            showStatus(`${name} tillagd!`, 'success');
+        }
+        
+        // Ta bort produkt från beställning
+        function removeFromOrder(index) {
+            const removed = currentOrder.splice(index, 1)[0];
+            updateOrderDisplay();
+            showStatus(`${removed.name} borttagen!`, 'success');
+        }
+        
+        // Uppdatera beställningsvisning
+        function updateOrderDisplay() {
+            const orderSummary = document.getElementById('orderSummary');
+            const totalElement = document.getElementById('totalAmount');
+            
+            if (currentOrder.length === 0) {
+                orderSummary.innerHTML = '<p style="text-align: center; color: #6c757d;">Ingen beställning ännu...</p>';
+                totalElement.textContent = 'Totalt: 0 kr';
+                return;
+            }
+            
+            let html = '';
+            let total = 0;
+            
+            currentOrder.forEach((item, index) => {
+                html += `
+                    <div class="order-item">
+                        <span>${item.name}</span>
+                        <span>
+                            ${item.price} kr
+                            <button class="remove-btn" data-index="${index}">×</button>
+                        </span>
+                    </div>
+                `;
+                total += item.price;
+            });
+            
+            orderSummary.innerHTML = html;
+            totalElement.textContent = `Totalt: ${total} kr`;
+        }
+        
+        // Rensa beställning
+        function clearOrder() {
+            currentOrder = [];
+            updateOrderDisplay();
+            document.getElementById('amount').value = '';
+            document.getElementById('qrContainer').style.display = 'none';
+            document.getElementById('receiptContainer').style.display = 'none';
+            currentReceiptId = null;
+            currentReceiptData = null;
+            showStatus('Beställning rensad!', 'success');
+        }
+        
+        // Överför till QR-generator
+        function transferToQR() {
+            const total = currentOrder.reduce((sum, item) => sum + item.price, 0);
+            
+            if (total === 0) {
+                showStatus('Lägg till produkter i beställningen först!', 'error');
+                return;
+            }
+            
+            const amountField = document.getElementById('amount');
+            amountField.value = total;
+            
+            showStatus(`Belopp ${total} kr överfört till QR-generator!`, 'success');
+            
+            if (window.innerWidth <= 768) {
+                setTimeout(() => {
+                    document.querySelector('.section:last-child').scrollIntoView({ 
+                        behavior: 'smooth' 
+                    });
+                    setTimeout(() => {
+                        generateQR();
+                        setTimeout(() => {
+                            showQRFullscreen();
+                        }, 1500);
+                    }, 800);
+                }, 300);
+            } else {
+                setTimeout(() => {
+                    document.getElementById('message').focus();
+                }, 300);
+            }
+        }
+        
+        // Generera QR-kod
+        function generateQR() {
+            const swishNumber = '1234701777';
+            const amount = document.getElementById('amount').value.trim();
+            const message = document.getElementById('message').value.trim();
+            
+            if (!amount || amount <= 0) {
+                showStatus('Ange ett giltigt belopp!', 'error');
+                return;
+            }
+            
+            try {
+                const formattedAmount = parseFloat(amount).toFixed(2).replace('.', ',');
+                const encodedMessage = message ? encodeURIComponent(message) : '';
+                const swishString = `C${swishNumber};${formattedAmount};${encodedMessage};0`;
+                
+                document.getElementById('swishData').innerHTML = `
+                    <strong>Swish-data:</strong><br>
+                    ${swishString}
+                `;
+                
+                const isMobile = window.innerWidth <= 768;
+                const qrSize = isMobile ? 250 : 300;
+                
+                const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${qrSize}x${qrSize}&format=png&data=${encodeURIComponent(swishString)}`;
+                
+                const qrImage = document.getElementById('qrImage');
+                
+                qrImage.onload = function() {
+                    this.style.display = 'block';
+                    document.getElementById('qrContainer').style.display = 'block';
+                    showStatus(`QR-kod för ${formattedAmount} SEK klar!`, 'success');
+                    document.getElementById('paymentReceivedBtn').style.display = 'block';
+                };
+                
+                qrImage.onerror = function() {
+                    showStatus('Kunde inte skapa QR-kod. Kontrollera internet.', 'error');
+                };
+                
+                qrImage.src = qrApiUrl;
+                
+            } catch (error) {
+                console.error('QR-generering fel:', error);
+                showStatus('Fel vid QR-generering: ' + error.message, 'error');
+            }
+        }
+        
+        // Skapa kvitto efter betalning
+        async function createReceipt() {
+            if (currentOrder.length === 0) {
+                showStatus('Ingen beställning att skapa kvitto för!', 'error');
+                return;
+            }
+            
+            document.getElementById('qrContainer').style.display = 'none';
+            showStatus('Registrerar köp i Google Sheets...', 'success');
+            
+            const savedPurchase = await savePurchaseToBackend();
+            
+            currentReceiptId = savedPurchase.id ? savedPurchase.id.toString() : 'receipt_' + Date.now();
+            
+            currentReceiptData = {
+                id: currentReceiptId,
+                timestamp: new Date().toLocaleString('sv-SE'),
+                items: [...currentOrder],
+                total: currentOrder.reduce((sum, item) => sum + item.price, 0),
+                swishNumber: '1234701777',
+                companyName: 'BIK Karlskoga café',
+                message: document.getElementById('message').value || '',
+                cashier: document.getElementById('cashierName').value || 'Anonym',
+                backendId: savedPurchase.id
+            };
+            
+            const receiptJson = JSON.stringify(currentReceiptData);
+            const encodedReceipt = btoa(encodeURIComponent(receiptJson));
+            
+            const currentUrl = window.location.href.split('?')[0];
+            const receiptUrl = currentUrl + '?receiptData=' + encodedReceipt;
+            
+            const receiptQrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&format=png&data=${encodeURIComponent(receiptUrl)}`;
+            
+            const receiptQrImage = document.getElementById('receiptQrImage');
+            
+            receiptQrImage.onload = function() {
+                this.style.display = 'block';
+                document.getElementById('receiptContainer').style.display = 'block';
+                showStatus('Köp registrerat! Kvitto-QR-kod skapad!', 'success');
+            };
+            
+            receiptQrImage.onerror = function() {
+                showStatus('Kunde inte skapa kvitto-QR-kod', 'error');
+            };
+            
+            receiptQrImage.src = receiptQrApiUrl;
+        }
+        
+        // Förhandsgranska kvitto
+        function previewReceipt() {
+            if (!currentReceiptData) {
+                showStatus('Inget kvitto att förhandsgranska', 'error');
+                return;
+            }
+            
+            showReceiptFullscreen(currentReceiptData);
+        }
+
+        // Visa kvitto i fullskärm
+        function showReceiptFullscreen(receiptData) {
+            const vatGroups = {};
+            let totalVat = 0;
+            let totalExVat = 0;
+            
+            receiptData.items.forEach(item => {
+                const vatRate = item.vatRate || 12;
+                const itemVat = (item.price * vatRate) / (100 + vatRate);
+                const itemExVat = item.price - itemVat;
+                
+                if (!vatGroups[vatRate]) {
+                    vatGroups[vatRate] = {
+                        rate: vatRate,
+                        totalExVat: 0,
+                        totalVat: 0
+                    };
+                }
+                
+                vatGroups[vatRate].totalExVat += itemExVat;
+                vatGroups[vatRate].totalVat += itemVat;
+                totalVat += itemVat;
+                totalExVat += itemExVat;
+            });
+            
+            const receiptOverlayContent = document.getElementById('receiptOverlayContent');
+            receiptOverlayContent.innerHTML = `
+                <div class="receipt-header">
+                    <img src="https://sportality.cdn.s8y.se/team-logos/bik1_bik.svg" alt="BIK Karlskoga" class="receipt-logo">
+                    <h3 style="margin: 0 0 10px 0; color: #1e3c72; font-size: 1.5em;">BIK KARLSKOGA CAFÉ</h3>
+                    <p style="margin: 0; color: #666; font-weight: bold;">KVITTO</p>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <h3 style="margin: 0 0 15px 0; color: #1e3c72;">Köpdetaljer</h3>
+                    <p><strong>Datum:</strong> ${receiptData.timestamp}</p>
+                    <p><strong>Kvitto-ID:</strong> ${receiptData.id}</p>
+                    <p><strong>Kassör:</strong> ${receiptData.cashier}</p>
+                    ${receiptData.message ? `<p><strong>Meddelande:</strong> ${receiptData.message}</p>` : ''}
+                </div>
+                
+                <div style="background: #fff; border: 2px solid #dee2e6; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                    <h3 style="margin: 0 0 15px 0; color: #1e3c72;">Produkter</h3>
+                    ${receiptData.items.map(item => {
+                        const vatRate = item.vatRate || 12;
+                        const itemVat = (item.price * vatRate) / (100 + vatRate);
+                        return `<div style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>${item.name}</span>
+                                <span style="font-weight: bold;">${item.price} kr</span>
+                            </div>
+                            <div style="font-size: 0.85em; color: #666; margin-top: 2px;">
+                                Moms ${vatRate}%: ${itemVat.toFixed(2)} kr
+                            </div>
+                        </div>`;
+                    }).join('')}
+                    
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid #1e3c72;">
+                        <div style="display: flex; justify-content: space-between; padding: 5px 0;">
+                            <span>Summa ex. moms:</span>
+                            <span>${totalExVat.toFixed(2)} kr</span>
+                        </div>
+                        
+                        ${Object.values(vatGroups).map(group => `
+                            <div style="display: flex; justify-content: space-between; padding: 5px 0; color: #666;">
+                                <span>Moms ${group.rate}%:</span>
+                                <span>${group.totalVat.toFixed(2)} kr</span>
+                            </div>
+                        `).join('')}
+                        
+                        <div style="display: flex; justify-content: space-between; padding: 10px 0 5px 0; font-size: 1.2em; font-weight: bold; color: #1e3c72; border-top: 1px solid #dee2e6; margin-top: 10px;">
+                            <span>ATT BETALA:</span>
+                            <span>${receiptData.total} kr</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: #e7f3ff; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
+                    <p style="margin: 0; color: #1e3c72;"><strong>Betalt via Swish: 1234701777</strong></p>
+                    <p style="margin: 5px 0 0 0; font-size: 0.9em; color: #666;">Org.nr: 123456-7890</p>
+                </div>
+                
+                <div style="text-align: center; color: #666; font-size: 0.9em; margin-top: 20px;">
+                    <p>Tack för ditt köp!</p>
+                    <p>Välkommen åter till BIK Karlskoga café</p>
+                </div>
+            `;
+            
+            const overlay = document.getElementById('receiptOverlay');
+            overlay.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            
+            showStatus('Kvittoförhandsvisning i fullskärm', 'success');
+        }
+
+        // Stäng kvitto-fullskärm
+        function closeReceiptFullscreen() {
+            const overlay = document.getElementById('receiptOverlay');
+            overlay.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            showStatus('Förhandsvisning stängd', 'success');
+        }
+        
+        // Visa kvittosida
+        function showReceiptPage(receiptData) {
+            const vatGroups = {};
+            let totalVat = 0;
+            let totalExVat = 0;
+            
+            receiptData.items.forEach(item => {
+                const vatRate = item.vatRate || 12;
+                const itemVat = (item.price * vatRate) / (100 + vatRate);
+                const itemExVat = item.price - itemVat;
+                
+                if (!vatGroups[vatRate]) {
+                    vatGroups[vatRate] = {
+                        rate: vatRate,
+                        totalExVat: 0,
+                        totalVat: 0
+                    };
+                }
+                
+                vatGroups[vatRate].totalExVat += itemExVat;
+                vatGroups[vatRate].totalVat += itemVat;
+                totalVat += itemVat;
+                totalExVat += itemExVat;
+            });
+            
+            const receiptContent = document.getElementById('receiptContent');
+            receiptContent.innerHTML = `
+                <div class="receipt-header">
+                    <img src="https://sportality.cdn.s8y.se/team-logos/bik1_bik.svg" alt="BIK Karlskoga" class="receipt-logo">
+                    <h3 style="margin: 0 0 10px 0; color: #1e3c72; font-size: 1.5em;">BIK KARLSKOGA CAFÉ</h3>
+                    <p style="margin: 0; color: #666; font-weight: bold;">KVITTO</p>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <h3 style="margin: 0 0 15px 0; color: #1e3c72;">Köpdetaljer</h3>
+                    <p><strong>Datum:</strong> ${receiptData.timestamp}</p>
+                    <p><strong>Kvitto-ID:</strong> ${receiptData.id}</p>
+                    <p><strong>Kassör:</strong> ${receiptData.cashier}</p>
+                    ${receiptData.message ? `<p><strong>Meddelande:</strong> ${receiptData.message}</p>` : ''}
+                </div>
+                
+                <div style="background: #fff; border: 2px solid #dee2e6; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                    <h3 style="margin: 0 0 15px 0; color: #1e3c72;">Produkter</h3>
+                    ${receiptData.items.map(item => {
+                        const vatRate = item.vatRate || 12;
+                        const itemVat = (item.price * vatRate) / (100 + vatRate);
+                        return `<div style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>${item.name}</span>
+                                <span style="font-weight: bold;">${item.price} kr</span>
+                            </div>
+                            <div style="font-size: 0.85em; color: #666; margin-top: 2px;">
+                                Moms ${vatRate}%: ${itemVat.toFixed(2)} kr
+                            </div>
+                        </div>`;
+                    }).join('')}
+                    
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid #1e3c72;">
+                        <div style="display: flex; justify-content: space-between; padding: 5px 0;">
+                            <span>Summa ex. moms:</span>
+                            <span>${totalExVat.toFixed(2)} kr</span>
+                        </div>
+                        
+                        ${Object.values(vatGroups).map(group => `
+                            <div style="display: flex; justify-content: space-between; padding: 5px 0; color: #666;">
+                                <span>Moms ${group.rate}%:</span>
+                                <span>${group.totalVat.toFixed(2)} kr</span>
+                            </div>
+                        `).join('')}
+                        
+                        <div style="display: flex; justify-content: space-between; padding: 10px 0 5px 0; font-size: 1.2em; font-weight: bold; color: #1e3c72; border-top: 1px solid #dee2e6; margin-top: 10px;">
+                            <span>ATT BETALA:</span>
+                            <span>${receiptData.total} kr</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: #e7f3ff; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
+                    <p style="margin: 0; color: #1e3c72;"><strong>Betalt via Swish: 1234701777</strong></p>
+                    <p style="margin: 5px 0 0 0; font-size: 0.9em; color: #666;">Org.nr: 123456-7890</p>
+                </div>
+            `;
+            
+            document.getElementById('receiptPage').style.display = 'block';
+        }
+        
+        // Göm kvittosida
+        function hideReceipt() {
+            document.getElementById('receiptPage').style.display = 'none';
+        }
+        
+        // Visa QR-kod i fullskärm
+        function showQRFullscreen() {
+            const qrImage = document.getElementById('qrImage');
+            
+            if (!qrImage.src || qrImage.style.display === 'none') {
+                showStatus('Ingen QR-kod att visa', 'error');
+                return;
+            }
+            
+            const overlayImage = document.getElementById('qrOverlayImage');
+            overlayImage.src = qrImage.src;
+            
+            const overlay = document.getElementById('qrOverlay');
+            overlay.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            
+            showStatus('QR-kod i fullskärm - tryck för att stänga', 'success');
+        }
+        
+        // Visa kvitto-QR i fullskärm
+        function showReceiptQRFullscreen() {
+            const receiptQrImage = document.getElementById('receiptQrImage');
+            
+            if (!receiptQrImage.src || receiptQrImage.style.display === 'none') {
+                showStatus('Ingen kvitto-QR-kod att visa', 'error');
+                return;
+            }
+            
+            const overlayImage = document.getElementById('qrOverlayImage');
+            overlayImage.src = receiptQrImage.src;
+            
+            const overlay = document.getElementById('qrOverlay');
+            overlay.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            
+            showStatus('Kvitto-QR i fullskärm', 'success');
+        }
+        
+        // Stäng QR-fullskärm
+        function closeQRFullscreen() {
+            const overlay = document.getElementById('qrOverlay');
+            overlay.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            showStatus('QR-fullskärm stängd', 'success');
+        }
+        
+        // Skriv ut kvitto
+        function printReceipt() {
+            if (!currentReceiptData) {
+                showStatus('Inget kvitto att skriva ut', 'error');
+                return;
+            }
+            
+            const vatGroups = {};
+            let totalVat = 0;
+            let totalExVat = 0;
+            
+            currentReceiptData.items.forEach(item => {
+                const vatRate = item.vatRate || 12;
+                const itemVat = (item.price * vatRate) / (100 + vatRate);
+                const itemExVat = item.price - itemVat;
+                
+                if (!vatGroups[vatRate]) {
+                    vatGroups[vatRate] = {
+                        rate: vatRate,
+                        totalExVat: 0,
+                        totalVat: 0
+                    };
+                }
+                
+                vatGroups[vatRate].totalExVat += itemExVat;
+                vatGroups[vatRate].totalVat += itemVat;
+                totalVat += itemVat;
+                totalExVat += itemExVat;
+            });
+            
+            const printWindow = window.open('', '_blank');
+            const printContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Kvitto - BIK Karlskoga</title>
+                    <style>
+                        @media print {
+                            body { margin: 0; }
+                        }
+                        body { 
+                            font-family: 'Courier New', monospace; 
+                            margin: 20px; 
+                            max-width: 300px; 
+                            font-size: 12px;
+                        }
+                        .header { 
+                            text-align: center; 
+                            margin-bottom: 20px; 
+                            border-bottom: 2px solid #000;
+                            padding-bottom: 15px;
+                        }
+                        .logo {
+                            width: 50px;
+                            height: 50px;
+                            margin-bottom: 10px;
+                        }
+                        .line { 
+                            border-top: 1px dashed #000; 
+                            margin: 10px 0; 
+                        }
+                        .item { 
+                            display: flex; 
+                            justify-content: space-between; 
+                            margin: 5px 0; 
+                        }
+                        .vat-info { 
+                            font-size: 0.9em; 
+                            margin-left: 10px; 
+                            color: #555; 
+                        }
+                        .total { 
+                            font-weight: bold; 
+                            font-size: 1.2em; 
+                            margin-top: 10px; 
+                            border-top: 2px solid #000;
+                            padding-top: 10px;
+                        }
+                        .footer { 
+                            text-align: center; 
+                            margin-top: 20px; 
+                            font-size: 0.9em;
+                            border-top: 1px solid #000;
+                            padding-top: 15px;
+                        }
+                        .company-info {
+                            font-size: 0.8em;
+                            margin-top: 15px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <img src="https://sportality.cdn.s8y.se/team-logos/bik1_bik.svg" alt="BIK Karlskoga" class="logo">
+                        <h2 style="margin: 5px 0;">BIK KARLSKOGA CAFÉ</h2>
+                        <p style="margin: 5px 0;">KVITTO</p>
+                        <p style="margin: 5px 0;">${currentReceiptData.timestamp}</p>
+                        <p style="margin: 5px 0;">Kassör: ${currentReceiptData.cashier}</p>
+                    </div>
+                    
+                    ${currentReceiptData.items.map(item => {
+                        const vatRate = item.vatRate || 12;
+                        const itemVat = (item.price * vatRate) / (100 + vatRate);
+                        return `<div>
+                            <div class="item">
+                                <span>${item.name}</span>
+                                <span>${item.price} kr</span>
+                            </div>
+                            <div class="vat-info">Moms ${vatRate}%: ${itemVat.toFixed(2)} kr</div>
+                        </div>`;
+                    }).join('')}
+                    
+                    <div class="line"></div>
+                    
+                    <div class="item">
+                        <span>Summa ex. moms:</span>
+                        <span>${totalExVat.toFixed(2)} kr</span>
+                    </div>
+                    
+                    ${Object.values(vatGroups).map(group => `
+                        <div class="item">
+                            <span>Moms ${group.rate}%:</span>
+                            <span>${group.totalVat.toFixed(2)} kr</span>
+                        </div>
+                    `).join('')}
+                    
+                    <div class="item total">
+                        <span>TOTALT:</span>
+                        <span>${currentReceiptData.total} kr</span>
+                    </div>
+                    
+                    ${currentReceiptData.message ? `
+                        <div class="line"></div>
+                        <p><strong>Meddelande:</strong> ${currentReceiptData.message}</p>
+                    ` : ''}
+                    
+                    <div class="footer">
+                        <p><strong>Tack för ditt köp!</strong></p>
+                        <p>Betalt via Swish: 1234701777</p>
+                        <div class="company-info">
+                            <p>Kvitto-ID: ${currentReceiptData.id}</p>
+                            <p>Org.nr: 123456-7890</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+            
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 1000);
+            
+            showStatus('Kvitto skickat till skrivare', 'success');
+        }
+        
+        // Hantera kvitto-URL när sidan laddas
+        function handleReceiptURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const receiptDataEncoded = urlParams.get('receiptData');
+            
+            if (receiptDataEncoded) {
+                try {
+                    const receiptJson = decodeURIComponent(atob(receiptDataEncoded));
+                    const receiptData = JSON.parse(receiptJson);
+                    
+                    document.getElementById('mainPage').style.display = 'none';
+                    showReceiptPage(receiptData);
+                } catch (error) {
+                    console.error('Fel vid dekodning av kvittodata:', error);
+                    showStatus('Felaktig kvitto-URL', 'error');
+                }
+            }
+        }
+        
+        // ========================================
+        // EVENT LISTENERS
+        // ========================================
+        document.addEventListener('DOMContentLoaded', function() {
+            handleReceiptURL();
+            loadProducts();
+            
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('remove-btn')) {
+                    const index = parseInt(e.target.dataset.index);
+                    removeFromOrder(index);
+                }
+            });
+            
+            document.getElementById('transferBtn').addEventListener('click', transferToQR);
+            document.getElementById('clearBtn').addEventListener('click', clearOrder);
+            document.getElementById('generateBtn').addEventListener('click', generateQR);
+            document.getElementById('downloadBtn').addEventListener('click', showQRFullscreen);
+            
+            document.getElementById('paymentReceivedBtn').addEventListener('click', createReceipt);
+            document.getElementById('showReceiptFullscreenBtn').addEventListener('click', showReceiptQRFullscreen);
+            document.getElementById('printReceiptBtn').addEventListener('click', printReceipt);
+            document.getElementById('previewReceiptBtn').addEventListener('click', previewReceipt);
+            
+            document.getElementById('qrOverlay').addEventListener('click', closeQRFullscreen);
+            document.getElementById('qrOverlayClose').addEventListener('click', function(e) {
+                e.stopPropagation();
+                closeQRFullscreen();
+            });
+            
+            document.getElementById('receiptOverlay').addEventListener('click', closeReceiptFullscreen);
+            document.getElementById('receiptOverlayClose').addEventListener('click', function(e) {
+                e.stopPropagation();
+                closeReceiptFullscreen();
+            });
+            
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && document.getElementById('qrOverlay').style.display === 'flex') {
+                    closeQRFullscreen();
+                }
+                if (e.key === 'Escape' && document.getElementById('receiptOverlay').style.display === 'flex') {
+                    closeReceiptFullscreen();
+                }
+                if (e.key === 'Escape' && document.getElementById('receiptPage').style.display === 'block') {
+                    hideReceipt();
+                }
+            });
+            
+            document.getElementById('amount').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') generateQR();
+            });
+            
+            document.getElementById('message').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') generateQR();
+            });
+            
+            const cashierField = document.getElementById('cashierName');
+            const savedCashier = localStorage.getItem('bikCashierName');
+            if (savedCashier) {
+                cashierField.value = savedCashier;
+            }
+            
+            cashierField.addEventListener('change', function() {
+                localStorage.setItem('bikCashierName', this.value);
+            });
+            
+            showStatus('BIK Karlskoga kassasystem med Google Sheets!', 'success');
+        });
+    </script>
+</body>
+</html>
