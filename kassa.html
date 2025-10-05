@@ -373,33 +373,6 @@
             color: white;
         }
         
-        /* Loading Spinner */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 2500;
-        }
-        
-        .loading-spinner {
-            width: 60px;
-            height: 60px;
-            border: 5px solid rgba(255, 255, 255, 0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
         /* Receipt Page */
         .receipt-page {
             display: none;
@@ -550,11 +523,6 @@
     <!-- Status Message -->
     <div class="status-message" id="statusMessage"></div>
     
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner"></div>
-    </div>
-    
     <!-- Receipt Page -->
     <div class="receipt-page" id="receiptPage">
         <div class="receipt-container">
@@ -682,13 +650,10 @@
             updateCart();
         }
         
-        // Spara köp till Google Sheets
+        // Spara köp till Google Sheets (i bakgrunden)
         async function savePurchaseToBackend() {
-            // Visa loading animation
-            document.getElementById('loadingOverlay').style.display = 'flex';
-            
             try {
-                console.log('Försöker spara köp till Google Sheets...');
+                console.log('Sparar köp i bakgrunden...');
                 
                 const totalAmount = currentOrder.reduce((sum, item) => sum + item.price, 0);
                 
@@ -719,7 +684,6 @@
                 };
                 
                 console.log('Data som ska sparas:', purchaseData);
-                console.log('URL:', GOOGLE_APPS_SCRIPT_URL);
                 
                 const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=createPurchase`, {
                     method: 'POST',
@@ -730,25 +694,15 @@
                     body: JSON.stringify(purchaseData)
                 });
                 
-                console.log('Response från Google Sheets mottagen');
-                
-                // Dölj loading animation
-                document.getElementById('loadingOverlay').style.display = 'none';
-                
-                // Med no-cors kan vi inte läsa response, men vi antar det gick bra
-                showStatus('Köp registrerat!', 'success');
+                console.log('Köp sparat i Google Sheets');
                 return {
-                    id: 'SWISH_' + Date.now(),
+                    id: 'BIK-' + Date.now(),
                     created_at: new Date().toISOString(),
                     total_amount: totalAmount
                 };
                 
             } catch (error) {
-                // Dölj loading animation
-                document.getElementById('loadingOverlay').style.display = 'none';
-                
                 console.error('FEL vid sparande:', error);
-                showStatus('Varning: Kunde inte registrera köp - ' + error.message, 'error');
                 return {
                     id: 'local_' + Date.now(),
                     created_at: new Date().toISOString(),
