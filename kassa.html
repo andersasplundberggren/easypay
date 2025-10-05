@@ -798,7 +798,10 @@
         }
         
         // Hantera när betalning mottagits
-        window.handlePaymentReceived = async function() {
+        window.handlePaymentReceived = function() {
+            // Starta sparandet DIREKT i bakgrunden
+            savePurchaseToBackend();
+            
             const buttonsDiv = document.getElementById('modalButtons');
             buttonsDiv.innerHTML = `
                 <button class="modal-btn btn-primary" onclick="createReceipt()">📄 Skapa kvitto för kund</button>
@@ -811,12 +814,9 @@
         
         // Ingen kvitto behövs
         window.noReceiptNeeded = function() {
-            // Spara i bakgrunden (utan await)
-            savePurchaseToBackend();
-            
-            // Stäng direkt och gå vidare
+            // Sparandet har redan startats, stäng direkt
             closeModalAndClear();
-            showStatus('Transaktion klar! (Sparas i bakgrunden)', 'success');
+            showStatus('Transaktion klar! Redo för nästa kund', 'success');
         }
         
         // Skapa kvitto efter betalning
