@@ -810,26 +810,27 @@
         }
         
         // Ingen kvitto behövs
-        window.noReceiptNeeded = async function() {
-            // Spara ändå till Google Sheets för bokföring
-            await savePurchaseToBackend();
+        window.noReceiptNeeded = function() {
+            // Spara i bakgrunden (utan await)
+            savePurchaseToBackend();
+            
+            // Stäng direkt och gå vidare
             closeModalAndClear();
-            showStatus('Transaktion klar! Redo för nästa kund', 'success');
+            showStatus('Transaktion klar! (Sparas i bakgrunden)', 'success');
         }
         
         // Skapa kvitto efter betalning
-        window.createReceipt = async function() {
+        window.createReceipt = function() {
             if (currentOrder.length === 0) {
                 showStatus('Ingen beställning!', 'error');
                 return;
             }
             
-            document.getElementById('paymentReceivedBtn').style.display = 'none';
-            showStatus('Registrerar köp...', 'success');
+            // Spara i bakgrunden (utan await)
+            savePurchaseToBackend();
             
-            const savedPurchase = await savePurchaseToBackend();
-            
-            const receiptId = savedPurchase.id ? savedPurchase.id.toString() : 'receipt_' + Date.now();
+            // Skapa kvitto direkt
+            const receiptId = 'BIK-' + Date.now();
             
             currentReceiptData = {
                 id: receiptId,
@@ -839,8 +840,7 @@
                 swishNumber: '1234701777',
                 companyName: 'BIK Karlskoga café',
                 message: 'BIK Karlskoga café',
-                cashier: 'Kassör',
-                backendId: savedPurchase.id
+                cashier: 'Kassör'
             };
             
             const receiptJson = JSON.stringify(currentReceiptData);
@@ -856,7 +856,7 @@
             qrImage.onload = function() {
                 this.style.display = 'block';
                 document.getElementById('modalTitle').textContent = 'Kvitto QR-kod';
-                document.getElementById('qrInfo').innerHTML = '<p>Kunden scannar denna QR-kod för sitt kvitto</p>';
+                document.getElementById('qrInfo').innerHTML = '<p>Kunden scannar denna QR-kod för sitt kvitto</p><p style="font-size: 0.85em; color: #666; margin-top: 10px;">(Sparas i bakgrunden)</p>';
                 
                 const buttonsDiv = document.getElementById('modalButtons');
                 buttonsDiv.innerHTML = `
