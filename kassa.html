@@ -68,6 +68,150 @@
             font-size: 4rem;
             font-weight: 700;
             color: #2b4c7e;
+            margin-bottom: 20px;
+        }
+        
+        /* Order Summary */
+        .order-summary {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .order-summary h3 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #666;
+        }
+        
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .order-item:last-child {
+            border-bottom: none;
+        }
+        
+        .order-item-info {
+            flex: 1;
+        }
+        
+        .order-item-name {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+        
+        .order-item-vat {
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        .order-item-price {
+            font-weight: 700;
+            color: #28a745;
+            margin-right: 10px;
+        }
+        
+        .order-item-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+        }
+        
+        .order-item-remove:hover {
+            background: #c82333;
+        }
+        
+        .empty-cart {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+            font-style: italic;
+        }
+        
+        /* Receipt Page */
+        .receipt-page {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #2b4c7e;
+            z-index: 3000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .receipt-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+        }
+        
+        .receipt-header {
+            text-align: center;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .receipt-logo {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 15px;
+        }
+        
+        .receipt-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .receipt-section h3 {
+            color: #2b4c7e;
+            margin-bottom: 15px;
+        }
+        
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .receipt-row:last-child {
+            border-bottom: none;
+        }
+        
+        .receipt-total {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2b4c7e;
+            border-top: 2px solid #2b4c7e;
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+        
+        .receipt-footer {
+            text-align: center;
+            color: #666;
+            margin-top: 30px;
         }
         
         /* Main Layout */
@@ -352,6 +496,14 @@
         <div class="total-box">
             <h2>Summa att betala</h2>
             <div class="total-amount" id="totalDisplay">0 kr</div>
+            
+            <!-- Order Summary / Varukorg -->
+            <div class="order-summary">
+                <h3>Varukorg</h3>
+                <div id="orderItems">
+                    <div class="empty-cart">Ingen beställning ännu...</div>
+                </div>
+            </div>
         </div>
         
         <!-- Main Layout -->
@@ -393,6 +545,24 @@
     
     <!-- Status Message -->
     <div class="status-message" id="statusMessage"></div>
+    
+    <!-- Receipt Page (shown when accessing via QR code) -->
+    <div class="receipt-page" id="receiptPage">
+        <div class="receipt-container">
+            <div class="receipt-header">
+                <img src="https://sportality.cdn.s8y.se/team-logos/bik1_bik.svg" alt="BIK Karlskoga" class="receipt-logo">
+                <h2>BIK KARLSKOGA CAFÉ</h2>
+                <p>KVITTO</p>
+            </div>
+            <div id="receiptContent">
+                <!-- Receipt content will be populated here -->
+            </div>
+            <div class="receipt-footer">
+                <p><strong>Tack för ditt köp!</strong></p>
+                <p>Välkommen åter till BIK Karlskoga café</p>
+            </div>
+        </div>
+    </div>
     
     <script>
         // VIKTIGT: BYT UT DENNA URL MOT DIN WEB APP URL!
@@ -467,10 +637,35 @@
             showStatus(`${name} tillagd!`, 'success');
         }
         
-        // Uppdatera totalsumma
+        // Uppdatera totalsumma och varukorg
         function updateTotal() {
             const total = currentOrder.reduce((sum, item) => sum + item.price, 0);
             document.getElementById('totalDisplay').textContent = `${total} kr`;
+            
+            // Uppdatera varukorg
+            const orderItemsDiv = document.getElementById('orderItems');
+            
+            if (currentOrder.length === 0) {
+                orderItemsDiv.innerHTML = '<div class="empty-cart">Ingen beställning ännu...</div>';
+            } else {
+                orderItemsDiv.innerHTML = currentOrder.map((item, index) => `
+                    <div class="order-item">
+                        <div class="order-item-info">
+                            <div class="order-item-name">${item.name}</div>
+                            <div class="order-item-vat">Moms ${item.vatRate || 12}%</div>
+                        </div>
+                        <span class="order-item-price">${item.price} kr</span>
+                        <button class="order-item-remove" onclick="removeFromOrder(${index})">×</button>
+                    </div>
+                `).join('');
+            }
+        }
+        
+        // Ta bort produkt från varukorgen
+        function removeFromOrder(index) {
+            const removed = currentOrder.splice(index, 1)[0];
+            updateTotal();
+            showStatus(`${removed.name} borttagen!`, 'success');
         }
         
         // Rensa allt
@@ -775,6 +970,9 @@
         
         // Event listeners
         document.addEventListener('DOMContentLoaded', function() {
+            // Kolla om vi ska visa ett kvitto (från QR-kod)
+            handleReceiptURL();
+            
             loadProducts();
             
             document.getElementById('createSwishBtn').addEventListener('click', createSwishQR);
@@ -786,6 +984,100 @@
                 if (e.target === this) closeModal();
             });
         });
+        
+        // Hantera kvitto-URL (när kund scannar QR-koden)
+        function handleReceiptURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const receiptDataEncoded = urlParams.get('receiptData');
+            
+            if (receiptDataEncoded) {
+                try {
+                    const receiptJson = decodeURIComponent(atob(receiptDataEncoded));
+                    const receiptData = JSON.parse(receiptJson);
+                    
+                    showReceiptPage(receiptData);
+                } catch (error) {
+                    console.error('Fel vid dekodning av kvittodata:', error);
+                    showStatus('Felaktig kvitto-URL', 'error');
+                }
+            }
+        }
+        
+        // Visa kvittosida
+        function showReceiptPage(receiptData) {
+            const vatGroups = {};
+            let totalVat = 0;
+            let totalExVat = 0;
+            
+            receiptData.items.forEach(item => {
+                const vatRate = item.vatRate || 12;
+                const itemVat = (item.price * vatRate) / (100 + vatRate);
+                const itemExVat = item.price - itemVat;
+                
+                if (!vatGroups[vatRate]) {
+                    vatGroups[vatRate] = { rate: vatRate, totalExVat: 0, totalVat: 0 };
+                }
+                
+                vatGroups[vatRate].totalExVat += itemExVat;
+                vatGroups[vatRate].totalVat += itemVat;
+                totalVat += itemVat;
+                totalExVat += itemExVat;
+            });
+            
+            const receiptContent = document.getElementById('receiptContent');
+            receiptContent.innerHTML = `
+                <div class="receipt-section">
+                    <h3>Köpdetaljer</h3>
+                    <p><strong>Datum:</strong> ${receiptData.timestamp}</p>
+                    <p><strong>Kvitto-ID:</strong> ${receiptData.id}</p>
+                    ${receiptData.message ? `<p><strong>Meddelande:</strong> ${receiptData.message}</p>` : ''}
+                </div>
+                
+                <div class="receipt-section">
+                    <h3>Produkter</h3>
+                    ${receiptData.items.map(item => {
+                        const vatRate = item.vatRate || 12;
+                        const itemVat = (item.price * vatRate) / (100 + vatRate);
+                        return `
+                            <div class="receipt-row">
+                                <div>
+                                    <div><strong>${item.name}</strong></div>
+                                    <div style="font-size: 0.85em; color: #666;">Moms ${vatRate}%: ${itemVat.toFixed(2)} kr</div>
+                                </div>
+                                <div><strong>${item.price} kr</strong></div>
+                            </div>
+                        `;
+                    }).join('')}
+                    
+                    <div style="margin-top: 20px;">
+                        <div class="receipt-row">
+                            <span>Summa ex. moms:</span>
+                            <span>${totalExVat.toFixed(2)} kr</span>
+                        </div>
+                        
+                        ${Object.values(vatGroups).map(group => `
+                            <div class="receipt-row" style="color: #666;">
+                                <span>Moms ${group.rate}%:</span>
+                                <span>${group.totalVat.toFixed(2)} kr</span>
+                            </div>
+                        `).join('')}
+                        
+                        <div class="receipt-row receipt-total">
+                            <span>ATT BETALA:</span>
+                            <span>${receiptData.total} kr</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="receipt-section" style="text-align: center; background: #e7f3ff;">
+                    <p style="margin: 0; color: #2b4c7e;"><strong>Betalt via Swish: 1234701777</strong></p>
+                </div>
+            `;
+            
+            // Visa kvittosidan och göm huvudsidan
+            document.querySelector('.container').style.display = 'none';
+            document.getElementById('receiptPage').style.display = 'block';
+        }
     </script>
 </body>
 </html>
