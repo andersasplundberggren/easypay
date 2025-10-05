@@ -15,245 +15,77 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
             background: #2b4c7e;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
         
         /* Header */
         .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 30px;
             display: flex;
             align-items: center;
-            gap: 20px;
-            margin-bottom: 30px;
-            color: white;
+            gap: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         
         .logo {
-            width: 80px;
-            height: 80px;
+            width: 50px;
+            height: 50px;
         }
         
         .header-text h1 {
-            font-size: 2.5rem;
+            font-size: 1.5rem;
             font-weight: 700;
-            margin-bottom: 5px;
+            color: #2b4c7e;
         }
         
         .header-text p {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
-        
-        /* Total Box */
-        .total-box {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        
-        .total-box h2 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-        }
-        
-        .total-amount {
-            font-size: 4rem;
-            font-weight: 700;
-            color: #2b4c7e;
-            margin-bottom: 20px;
-        }
-        
-        /* Order Summary */
-        .order-summary {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 20px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        
-        .order-summary h3 {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
+            font-size: 0.9rem;
             color: #666;
         }
         
-        .order-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #dee2e6;
-        }
-        
-        .order-item:last-child {
-            border-bottom: none;
-        }
-        
-        .order-item-info {
+        /* Main Content - 2 Column Layout */
+        .main-content {
             flex: 1;
-        }
-        
-        .order-item-name {
-            font-weight: 600;
-            margin-bottom: 3px;
-        }
-        
-        .order-item-vat {
-            font-size: 0.85rem;
-            color: #666;
-        }
-        
-        .order-item-price {
-            font-weight: 700;
-            color: #28a745;
-            margin-right: 10px;
-        }
-        
-        .order-item-remove {
-            background: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 6px 12px;
-            cursor: pointer;
-            font-size: 1.2rem;
-            transition: all 0.2s;
-        }
-        
-        .order-item-remove:hover {
-            background: #c82333;
-        }
-        
-        .empty-cart {
-            text-align: center;
-            color: #999;
-            padding: 20px;
-            font-style: italic;
-        }
-        
-        /* Receipt Page */
-        .receipt-page {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #2b4c7e;
-            z-index: 3000;
-            overflow-y: auto;
-            padding: 20px;
-        }
-        
-        .receipt-container {
-            max-width: 500px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-        }
-        
-        .receipt-header {
-            text-align: center;
-            border-bottom: 2px solid #dee2e6;
-            padding-bottom: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .receipt-logo {
-            width: 60px;
-            height: 60px;
-            margin-bottom: 15px;
-        }
-        
-        .receipt-section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .receipt-section h3 {
-            color: #2b4c7e;
-            margin-bottom: 15px;
-        }
-        
-        .receipt-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #dee2e6;
-        }
-        
-        .receipt-row:last-child {
-            border-bottom: none;
-        }
-        
-        .receipt-total {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #2b4c7e;
-            border-top: 2px solid #2b4c7e;
-            padding-top: 15px;
-            margin-top: 15px;
-        }
-        
-        .receipt-footer {
-            text-align: center;
-            color: #666;
-            margin-top: 30px;
-        }
-        
-        /* Main Layout */
-        .main-layout {
             display: grid;
-            grid-template-columns: 1fr 400px;
-            gap: 30px;
+            grid-template-columns: 1fr 450px;
+            gap: 20px;
+            padding: 20px;
+            overflow: hidden;
         }
         
-        @media (max-width: 1200px) {
-            .main-layout {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        /* Left Section - Kassasystem */
-        .kassa-section {
+        /* Left Column - Products */
+        .products-section {
             background: white;
-            border-radius: 20px;
-            padding: 30px;
+            border-radius: 15px;
+            padding: 25px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
         
-        .kassa-section h3 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            padding-bottom: 15px;
-            border-bottom: 3px solid #2b4c7e;
+        .products-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #2b4c7e;
+            border-bottom: 2px solid #2b4c7e;
+            padding-bottom: 10px;
         }
         
         .products-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
         }
         
         .product-card {
             background: #f8f9fa;
             border: 2px solid #e9ecef;
-            border-radius: 12px;
-            padding: 20px;
+            border-radius: 10px;
+            padding: 15px;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s;
@@ -278,61 +110,150 @@
         }
         
         .product-name {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 600;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         
         .product-price {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: 700;
             color: #28a745;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
         
         .product-vat {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             color: #666;
         }
         
-        /* Right Section - Actions */
-        .actions-section {
+        /* Right Column - Cart & Payment */
+        .cart-section {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 15px;
         }
         
-        .action-btn {
-            width: 100%;
+        /* Total Display */
+        .total-display {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .total-display h2 {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .total-amount {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #2b4c7e;
+        }
+        
+        /* Cart Items */
+        .cart-items {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+        }
+        
+        .cart-items h3 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: #2b4c7e;
+        }
+        
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .cart-item-info {
+            flex: 1;
+        }
+        
+        .cart-item-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        .cart-item-vat {
+            font-size: 0.75rem;
+            color: #666;
+        }
+        
+        .cart-item-price {
+            font-weight: 700;
+            color: #28a745;
+            margin-right: 10px;
+        }
+        
+        .cart-item-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .cart-item-remove:hover {
+            background: #c82333;
+        }
+        
+        .empty-cart {
+            text-align: center;
+            color: #999;
+            padding: 30px 10px;
+            font-style: italic;
+        }
+        
+        /* Payment Button */
+        .payment-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 15px;
             padding: 30px;
             font-size: 1.5rem;
             font-weight: 700;
-            border: none;
-            border-radius: 15px;
             cursor: pointer;
             transition: all 0.2s;
             text-align: center;
         }
         
-        .action-btn:hover {
-            transform: translateY(-3px);
+        .payment-button:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
             box-shadow: 0 8px 16px rgba(0,0,0,0.2);
         }
         
-        .action-btn:active {
+        .payment-button:active {
             transform: scale(0.98);
         }
         
-        .btn-swish {
-            background: #007bff;
-            color: white;
-            min-height: 120px;
-        }
-        
-        .btn-clear {
-            background: #dc3545;
-            color: white;
-            min-height: 120px;
+        .payment-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
         }
         
         /* QR Modal */
@@ -434,7 +355,7 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            padding: 20px 30px;
+            padding: 15px 25px;
             border-radius: 10px;
             font-weight: 600;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
@@ -452,79 +373,135 @@
             color: white;
         }
         
+        /* Receipt Page */
+        .receipt-page {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #2b4c7e;
+            z-index: 3000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .receipt-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+        }
+        
+        .receipt-header {
+            text-align: center;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .receipt-logo {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 15px;
+        }
+        
+        .receipt-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .receipt-section h3 {
+            color: #2b4c7e;
+            margin-bottom: 15px;
+        }
+        
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .receipt-row:last-child {
+            border-bottom: none;
+        }
+        
+        .receipt-total {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2b4c7e;
+            border-top: 2px solid #2b4c7e;
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+        
+        .receipt-footer {
+            text-align: center;
+            color: #666;
+            margin-top: 30px;
+        }
+        
         /* Responsive */
-        @media (max-width: 768px) {
-            .header-text h1 {
-                font-size: 1.8rem;
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
             }
             
-            .header-text p {
-                font-size: 1rem;
+            body {
+                overflow: auto;
             }
             
-            .total-box h2 {
-                font-size: 1.8rem;
-            }
-            
-            .total-amount {
-                font-size: 3rem;
-            }
-            
-            .products-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .action-btn {
-                font-size: 1.2rem;
-                padding: 25px;
+            .products-section, .cart-section {
+                overflow-y: visible;
             }
         }
     </style>
 </head>
 <body>
     <!-- Header -->
-    <div class="container">
-        <div class="header">
-            <img src="https://sportality.cdn.s8y.se/team-logos/bik1_bik.svg" alt="BIK Karlskoga" class="logo">
-            <div class="header-text">
-                <h1>BIK Karlskoga café</h1>
-                <p>Kassa & Swishbetalning</p>
+    <div class="header">
+        <img src="https://sportality.cdn.s8y.se/team-logos/bik1_bik.svg" alt="BIK Karlskoga" class="logo">
+        <div class="header-text">
+            <h1>BIK Karlskoga café</h1>
+            <p>Kassa & Swishbetalning</p>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Left: Products -->
+        <div class="products-section">
+            <h2>Produkter</h2>
+            <div class="products-grid" id="productsGrid">
+                <div class="loading">Laddar produkter från Google Sheets</div>
             </div>
         </div>
         
-        <!-- Total Box -->
-        <div class="total-box">
-            <h2>Summa att betala</h2>
-            <div class="total-amount" id="totalDisplay">0 kr</div>
+        <!-- Right: Cart & Payment -->
+        <div class="cart-section">
+            <!-- Total Display -->
+            <div class="total-display">
+                <h2>Summa att betala</h2>
+                <div class="total-amount" id="totalDisplay">0 kr</div>
+            </div>
             
-            <!-- Order Summary / Varukorg -->
-            <div class="order-summary">
+            <!-- Cart Items -->
+            <div class="cart-items">
                 <h3>Varukorg</h3>
                 <div id="orderItems">
                     <div class="empty-cart">Ingen beställning ännu...</div>
                 </div>
             </div>
-        </div>
-        
-        <!-- Main Layout -->
-        <div class="main-layout">
-            <!-- Left: Kassasystem -->
-            <div class="kassa-section">
-                <h3>Kassasystem</h3>
-                <div class="products-grid" id="productsGrid">
-                    <div class="loading">Laddar produkter från Google Sheets</div>
-                </div>
-            </div>
             
-            <!-- Right: Actions -->
-            <div class="actions-section">
-                <button class="action-btn btn-swish" id="createSwishBtn">
-                    Skapa Swish QR
-                </button>
-                <button class="action-btn btn-clear" id="clearBtn">
-                    Rensa allt
-                </button>
-            </div>
+            <!-- Payment Button -->
+            <button class="payment-button" id="paymentBtn" disabled>
+                Skapa Swish QR
+            </button>
         </div>
     </div>
     
@@ -546,7 +523,7 @@
     <!-- Status Message -->
     <div class="status-message" id="statusMessage"></div>
     
-    <!-- Receipt Page (shown when accessing via QR code) -->
+    <!-- Receipt Page -->
     <div class="receipt-page" id="receiptPage">
         <div class="receipt-container">
             <div class="receipt-header">
@@ -554,9 +531,7 @@
                 <h2>BIK KARLSKOGA CAFÉ</h2>
                 <p>KVITTO</p>
             </div>
-            <div id="receiptContent">
-                <!-- Receipt content will be populated here -->
-            </div>
+            <div id="receiptContent"></div>
             <div class="receipt-footer">
                 <p><strong>Tack för ditt köp!</strong></p>
                 <p>Välkommen åter till BIK Karlskoga café</p>
@@ -633,47 +608,47 @@
         // Lägg till i order
         function addToOrder(name, price, vatRate, productId) {
             currentOrder.push({ name, price, vatRate, productId, timestamp: new Date().toISOString() });
-            updateTotal();
+            updateCart();
             showStatus(`${name} tillagd!`, 'success');
         }
         
-        // Uppdatera totalsumma och varukorg
-        function updateTotal() {
+        // Uppdatera varukorg och totalsumma
+        function updateCart() {
             const total = currentOrder.reduce((sum, item) => sum + item.price, 0);
             document.getElementById('totalDisplay').textContent = `${total} kr`;
             
-            // Uppdatera varukorg
             const orderItemsDiv = document.getElementById('orderItems');
             
             if (currentOrder.length === 0) {
                 orderItemsDiv.innerHTML = '<div class="empty-cart">Ingen beställning ännu...</div>';
+                document.getElementById('paymentBtn').disabled = true;
             } else {
                 orderItemsDiv.innerHTML = currentOrder.map((item, index) => `
-                    <div class="order-item">
-                        <div class="order-item-info">
-                            <div class="order-item-name">${item.name}</div>
-                            <div class="order-item-vat">Moms ${item.vatRate || 12}%</div>
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <div class="cart-item-name">${item.name}</div>
+                            <div class="cart-item-vat">Moms ${item.vatRate || 12}%</div>
                         </div>
-                        <span class="order-item-price">${item.price} kr</span>
-                        <button class="order-item-remove" onclick="removeFromOrder(${index})">×</button>
+                        <span class="cart-item-price">${item.price} kr</span>
+                        <button class="cart-item-remove" onclick="removeFromOrder(${index})">×</button>
                     </div>
                 `).join('');
+                document.getElementById('paymentBtn').disabled = false;
             }
         }
         
-        // Ta bort produkt från varukorgen
+        // Ta bort från order
         function removeFromOrder(index) {
             const removed = currentOrder.splice(index, 1)[0];
-            updateTotal();
+            updateCart();
             showStatus(`${removed.name} borttagen!`, 'success');
         }
         
-        // Rensa allt
-        function clearOrder() {
+        // Rensa varukorgen
+        function clearCart() {
             currentOrder = [];
             currentReceiptData = null;
-            updateTotal();
-            showStatus('Beställning rensad!', 'success');
+            updateCart();
         }
         
         // Spara köp till Google Sheets
@@ -707,7 +682,7 @@
                     swish_reference: 'SWISH_' + Date.now()
                 };
                 
-                console.log('Sparar köp till Google Sheets:', purchaseData);
+                console.log('Sparar köp:', purchaseData);
                 
                 const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=createPurchase`, {
                     method: 'POST',
@@ -721,11 +696,11 @@
                 }
                 
                 console.log('Köp sparat:', result.data);
-                showStatus('Köp registrerat i Google Sheets!', 'success');
+                showStatus('Köp registrerat!', 'success');
                 return result.data;
             } catch (error) {
                 console.error('Fel vid sparande:', error);
-                showStatus('Varning: Köpet kunde inte sparas till Google Sheets', 'error');
+                showStatus('Varning: Kunde inte spara till Google Sheets', 'error');
                 return {
                     id: 'local_' + Date.now(),
                     created_at: new Date().toISOString(),
@@ -771,12 +746,12 @@
         // Skapa kvitto efter betalning
         async function createReceipt() {
             if (currentOrder.length === 0) {
-                showStatus('Ingen beställning att skapa kvitto för!', 'error');
+                showStatus('Ingen beställning!', 'error');
                 return;
             }
             
             document.getElementById('paymentReceivedBtn').style.display = 'none';
-            showStatus('Registrerar köp i Google Sheets...', 'success');
+            showStatus('Registrerar köp...', 'success');
             
             const savedPurchase = await savePurchaseToBackend();
             
@@ -807,15 +782,15 @@
             qrImage.onload = function() {
                 this.style.display = 'block';
                 document.getElementById('modalTitle').textContent = 'Kvitto QR-kod';
-                document.getElementById('qrInfo').innerHTML = '<p>Kunden scannar denna QR-kod för att få sitt kvitto</p>';
+                document.getElementById('qrInfo').innerHTML = '<p>Kunden scannar denna QR-kod för sitt kvitto</p>';
                 
                 const buttonsDiv = document.getElementById('modalButtons');
                 buttonsDiv.innerHTML = `
-                    <button class="modal-btn btn-primary" onclick="printReceipt()">Skriv ut papperskvitto</button>
-                    <button class="modal-btn" onclick="closeModal()">Stäng</button>
+                    <button class="modal-btn btn-primary" onclick="printReceipt()">Skriv ut kvitto</button>
+                    <button class="modal-btn" onclick="closeModalAndClear()">Stäng och klar</button>
                 `;
                 
-                showStatus('Köp registrerat! Kvitto-QR skapad!', 'success');
+                showStatus('Kvitto-QR skapad!', 'success');
             };
             
             qrImage.onerror = function() {
@@ -859,36 +834,14 @@
                     <title>Kvitto - BIK Karlskoga</title>
                     <style>
                         @media print { body { margin: 0; } }
-                        body { 
-                            font-family: 'Courier New', monospace; 
-                            margin: 20px; 
-                            max-width: 300px; 
-                            font-size: 12px;
-                        }
-                        .header { 
-                            text-align: center; 
-                            margin-bottom: 20px; 
-                            border-bottom: 2px solid #000;
-                            padding-bottom: 15px;
-                        }
+                        body { font-family: 'Courier New', monospace; margin: 20px; max-width: 300px; font-size: 12px; }
+                        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 15px; }
                         .logo { width: 50px; height: 50px; margin-bottom: 10px; }
                         .line { border-top: 1px dashed #000; margin: 10px 0; }
                         .item { display: flex; justify-content: space-between; margin: 5px 0; }
                         .vat-info { font-size: 0.9em; margin-left: 10px; color: #555; }
-                        .total { 
-                            font-weight: bold; 
-                            font-size: 1.2em; 
-                            margin-top: 10px; 
-                            border-top: 2px solid #000;
-                            padding-top: 10px;
-                        }
-                        .footer { 
-                            text-align: center; 
-                            margin-top: 20px; 
-                            font-size: 0.9em;
-                            border-top: 1px solid #000;
-                            padding-top: 15px;
-                        }
+                        .total { font-weight: bold; font-size: 1.2em; margin-top: 10px; border-top: 2px solid #000; padding-top: 10px; }
+                        .footer { text-align: center; margin-top: 20px; font-size: 0.9em; border-top: 1px solid #000; padding-top: 15px; }
                     </style>
                 </head>
                 <body>
@@ -898,38 +851,15 @@
                         <p style="margin: 5px 0;">KVITTO</p>
                         <p style="margin: 5px 0;">${currentReceiptData.timestamp}</p>
                     </div>
-                    
                     ${currentReceiptData.items.map(item => {
                         const vatRate = item.vatRate || 12;
                         const itemVat = (item.price * vatRate) / (100 + vatRate);
-                        return `<div>
-                            <div class="item">
-                                <span>${item.name}</span>
-                                <span>${item.price} kr</span>
-                            </div>
-                            <div class="vat-info">Moms ${vatRate}%: ${itemVat.toFixed(2)} kr</div>
-                        </div>`;
+                        return `<div><div class="item"><span>${item.name}</span><span>${item.price} kr</span></div><div class="vat-info">Moms ${vatRate}%: ${itemVat.toFixed(2)} kr</div></div>`;
                     }).join('')}
-                    
                     <div class="line"></div>
-                    
-                    <div class="item">
-                        <span>Summa ex. moms:</span>
-                        <span>${totalExVat.toFixed(2)} kr</span>
-                    </div>
-                    
-                    ${Object.values(vatGroups).map(group => `
-                        <div class="item">
-                            <span>Moms ${group.rate}%:</span>
-                            <span>${group.totalVat.toFixed(2)} kr</span>
-                        </div>
-                    `).join('')}
-                    
-                    <div class="item total">
-                        <span>TOTALT:</span>
-                        <span>${currentReceiptData.total} kr</span>
-                    </div>
-                    
+                    <div class="item"><span>Summa ex. moms:</span><span>${totalExVat.toFixed(2)} kr</span></div>
+                    ${Object.values(vatGroups).map(g => `<div class="item"><span>Moms ${g.rate}%:</span><span>${g.totalVat.toFixed(2)} kr</span></div>`).join('')}
+                    <div class="item total"><span>TOTALT:</span><span>${currentReceiptData.total} kr</span></div>
                     <div class="footer">
                         <p><strong>Tack för ditt köp!</strong></p>
                         <p>Betalt via Swish: 1234701777</p>
@@ -941,12 +871,7 @@
             
             printWindow.document.write(printContent);
             printWindow.document.close();
-            
-            setTimeout(() => {
-                printWindow.print();
-                printWindow.close();
-            }, 1000);
-            
+            setTimeout(() => { printWindow.print(); printWindow.close(); }, 1000);
             showStatus('Kvitto skickat till skrivare', 'success');
         }
         
@@ -956,36 +881,23 @@
             document.getElementById('paymentReceivedBtn').style.display = 'none';
         }
         
+        // Stäng modal och rensa varukorg
+        function closeModalAndClear() {
+            closeModal();
+            clearCart();
+            showStatus('Klar! Ny kund kan börja handla', 'success');
+        }
+        
         // Visa statusmeddelande
         function showStatus(message, type) {
             const statusEl = document.getElementById('statusMessage');
             statusEl.textContent = message;
             statusEl.className = `status-message status-${type}`;
             statusEl.style.display = 'block';
-            
-            setTimeout(() => {
-                statusEl.style.display = 'none';
-            }, 3000);
+            setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
         }
         
-        // Event listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            // Kolla om vi ska visa ett kvitto (från QR-kod)
-            handleReceiptURL();
-            
-            loadProducts();
-            
-            document.getElementById('createSwishBtn').addEventListener('click', createSwishQR);
-            document.getElementById('clearBtn').addEventListener('click', clearOrder);
-            document.getElementById('closeModalBtn').addEventListener('click', closeModal);
-            document.getElementById('paymentReceivedBtn').addEventListener('click', createReceipt);
-            
-            document.getElementById('qrModal').addEventListener('click', function(e) {
-                if (e.target === this) closeModal();
-            });
-        });
-        
-        // Hantera kvitto-URL (när kund scannar QR-koden)
+        // Hantera kvitto-URL
         function handleReceiptURL() {
             const urlParams = new URLSearchParams(window.location.search);
             const receiptDataEncoded = urlParams.get('receiptData');
@@ -994,11 +906,9 @@
                 try {
                     const receiptJson = decodeURIComponent(atob(receiptDataEncoded));
                     const receiptData = JSON.parse(receiptJson);
-                    
                     showReceiptPage(receiptData);
                 } catch (error) {
                     console.error('Fel vid dekodning av kvittodata:', error);
-                    showStatus('Felaktig kvitto-URL', 'error');
                 }
             }
         }
@@ -1030,54 +940,43 @@
                     <h3>Köpdetaljer</h3>
                     <p><strong>Datum:</strong> ${receiptData.timestamp}</p>
                     <p><strong>Kvitto-ID:</strong> ${receiptData.id}</p>
-                    ${receiptData.message ? `<p><strong>Meddelande:</strong> ${receiptData.message}</p>` : ''}
                 </div>
-                
                 <div class="receipt-section">
                     <h3>Produkter</h3>
                     ${receiptData.items.map(item => {
                         const vatRate = item.vatRate || 12;
                         const itemVat = (item.price * vatRate) / (100 + vatRate);
-                        return `
-                            <div class="receipt-row">
-                                <div>
-                                    <div><strong>${item.name}</strong></div>
-                                    <div style="font-size: 0.85em; color: #666;">Moms ${vatRate}%: ${itemVat.toFixed(2)} kr</div>
-                                </div>
-                                <div><strong>${item.price} kr</strong></div>
-                            </div>
-                        `;
+                        return `<div class="receipt-row"><div><div><strong>${item.name}</strong></div><div style="font-size: 0.85em; color: #666;">Moms ${vatRate}%: ${itemVat.toFixed(2)} kr</div></div><div><strong>${item.price} kr</strong></div></div>`;
                     }).join('')}
-                    
                     <div style="margin-top: 20px;">
-                        <div class="receipt-row">
-                            <span>Summa ex. moms:</span>
-                            <span>${totalExVat.toFixed(2)} kr</span>
-                        </div>
-                        
-                        ${Object.values(vatGroups).map(group => `
-                            <div class="receipt-row" style="color: #666;">
-                                <span>Moms ${group.rate}%:</span>
-                                <span>${group.totalVat.toFixed(2)} kr</span>
-                            </div>
-                        `).join('')}
-                        
-                        <div class="receipt-row receipt-total">
-                            <span>ATT BETALA:</span>
-                            <span>${receiptData.total} kr</span>
-                        </div>
+                        <div class="receipt-row"><span>Summa ex. moms:</span><span>${totalExVat.toFixed(2)} kr</span></div>
+                        ${Object.values(vatGroups).map(g => `<div class="receipt-row" style="color: #666;"><span>Moms ${g.rate}%:</span><span>${g.totalVat.toFixed(2)} kr</span></div>`).join('')}
+                        <div class="receipt-row receipt-total"><span>ATT BETALA:</span><span>${receiptData.total} kr</span></div>
                     </div>
                 </div>
-                
                 <div class="receipt-section" style="text-align: center; background: #e7f3ff;">
                     <p style="margin: 0; color: #2b4c7e;"><strong>Betalt via Swish: 1234701777</strong></p>
                 </div>
             `;
             
-            // Visa kvittosidan och göm huvudsidan
-            document.querySelector('.container').style.display = 'none';
+            document.querySelector('.header').style.display = 'none';
+            document.querySelector('.main-content').style.display = 'none';
             document.getElementById('receiptPage').style.display = 'block';
         }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            handleReceiptURL();
+            loadProducts();
+            
+            document.getElementById('paymentBtn').addEventListener('click', createSwishQR);
+            document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+            document.getElementById('paymentReceivedBtn').addEventListener('click', createReceipt);
+            
+            document.getElementById('qrModal').addEventListener('click', function(e) {
+                if (e.target === this) closeModal();
+            });
+        });
     </script>
 </body>
 </html>
