@@ -29,6 +29,39 @@
             align-items: center;
             gap: 15px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            justify-content: space-between;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .cashier-input {
+            padding: 8px 15px;
+            border: 2px solid #2b4c7e;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            min-width: 180px;
+        }
+        
+        .cashier-input:focus {
+            outline: none;
+            border-color: #1a2d4f;
+            box-shadow: 0 0 0 3px rgba(43, 76, 126, 0.1);
+        }
+        
+        .cashier-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #2b4c7e;
         }
         
         .logo {
@@ -465,10 +498,16 @@
 <body>
     <!-- Header -->
     <div class="header">
-        <img src="https://sportality.cdn.s8y.se/team-logos/bik1_bik.svg" alt="BIK Karlskoga" class="logo">
-        <div class="header-text">
-            <h1>BIK Karlskoga café</h1>
-            <p>Kassa & Swishbetalning</p>
+        <div class="header-left">
+            <img src="https://sportality.cdn.s8y.se/team-logos/bik1_bik.svg" alt="BIK Karlskoga" class="logo">
+            <div class="header-text">
+                <h1>BIK Karlskoga café</h1>
+                <p>Kassa & Swishbetalning</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <label class="cashier-label">Kassa:</label>
+            <input type="text" class="cashier-input" id="cashierInput" placeholder="T.ex. Kassa 1">
         </div>
     </div>
     
@@ -478,7 +517,7 @@
         <div class="products-section">
             <h2>Produkter</h2>
             <div class="products-grid" id="productsGrid">
-                <div class="loading">Laddar produkter</div>
+                <div class="loading">Laddar produkter från Google Sheets</div>
             </div>
         </div>
         
@@ -656,6 +695,7 @@
                 console.log('Sparar köp i bakgrunden...');
                 
                 const totalAmount = currentOrder.reduce((sum, item) => sum + item.price, 0);
+                const cashierName = document.getElementById('cashierInput').value.trim() || 'Okänd kassa';
                 
                 let vatAmount = 0;
                 const itemsWithVat = currentOrder.map(item => {
@@ -679,7 +719,7 @@
                     vat_amount: parseFloat(vatAmount.toFixed(2)),
                     total_amount: totalAmount,
                     status: 'completed',
-                    cashier_name: 'Kassör',
+                    cashier_name: cashierName,
                     swish_reference: 'SWISH_' + Date.now()
                 };
                 
@@ -994,6 +1034,17 @@
         document.addEventListener('DOMContentLoaded', function() {
             handleReceiptURL();
             loadProducts();
+            
+            // Ladda sparad kassa från localStorage
+            const savedCashier = localStorage.getItem('bikCashierName');
+            if (savedCashier) {
+                document.getElementById('cashierInput').value = savedCashier;
+            }
+            
+            // Spara kassa när användaren ändrar
+            document.getElementById('cashierInput').addEventListener('change', function() {
+                localStorage.setItem('bikCashierName', this.value);
+            });
             
             document.getElementById('paymentBtn').addEventListener('click', createSwishQR);
             
