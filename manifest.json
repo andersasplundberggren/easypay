@@ -1,0 +1,17 @@
+{
+  "name": "BIK Karlskoga Kassasystem",
+  "short_name": "BIK Kassa",
+  "start_url": "kassa.html",
+  "display": "standalone",
+  "background_color": "#2b4c7e",
+  "theme_color": "#2b4c7e",
+  "description": "Kassasystem och Swishbetalning för BIK Karlskoga café",
+  "icons": [
+    {
+      "src": "https://sportality.cdn.s8y.se/team-logos/bik1_bik.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
