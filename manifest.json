@@ -1,8 +1,10 @@
 {
   "name": "BIK Karlskoga Kassasystem",
   "short_name": "BIK Kassa",
-  "start_url": "kassa.html",
+  "start_url": "/kassa.html",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#2b4c7e",
   "theme_color": "#2b4c7e",
   "description": "Kassasystem och Swishbetalning för BIK Karlskoga café",
@@ -13,5 +15,8 @@
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "categories": ["business", "finance"],
+  "lang": "sv-SE",
+  "dir": "ltr"
 }
