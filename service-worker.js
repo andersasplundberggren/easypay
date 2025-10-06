@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bik-kassa-v1';
+const CACHE_NAME = 'bik-kassa-v2';
 const urlsToCache = [
   '/',
   '/kassa.html',
