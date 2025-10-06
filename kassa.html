@@ -46,6 +46,49 @@
             gap: 10px;
         }
         
+        .online-indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .online-indicator.online {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .online-indicator.offline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .online-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .sync-badge {
+            background: #ffc107;
+            color: #000;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 5px;
+        }
+        
         .cashier-input {
             padding: 8px 15px;
             border: 2px solid #2b4c7e;
@@ -508,6 +551,11 @@
             </div>
         </div>
         <div class="header-right">
+            <div class="online-indicator" id="onlineIndicator">
+                <span class="online-dot"></span>
+                <span id="onlineText">Online</span>
+                <span class="sync-badge" id="syncBadge" style="display: none;">0 att synka</span>
+            </div>
             <label class="cashier-label">Kassa:</label>
             <input type="text" class="cashier-input" id="cashierInput" placeholder="T.ex. Kassa 1">
         </div>
@@ -586,24 +634,277 @@
         let currentOrder = [];
         let products = [];
         let currentReceiptData = null;
+        let db = null;
+        let isOnline = navigator.onLine;
         
-        // Ladda produkter från Google Sheets
-        async function loadProducts() {
-            try {
-                const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=getProducts`);
-                const result = await response.json();
+        // ===== INDEXEDDB SETUP =====
+        function initIndexedDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('BIKCafeDB', 1);
                 
-                if (result.error) {
-                    throw new Error(result.error);
+                request.onerror = () => {
+                    console.error('IndexedDB fel:', request.error);
+                    reject(request.error);
+                };
+                
+                request.onsuccess = () => {
+                    db = request.result;
+                    console.log('IndexedDB öppnad');
+                    resolve(db);
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    db = event.target.result;
+                    
+                    // Store för produkter
+                    if (!db.objectStoreNames.contains('products')) {
+                        const productsStore = db.createObjectStore('products', { keyPath: 'id' });
+                        productsStore.createIndex('name', 'name', { unique: false });
+                        console.log('Products store skapad');
+                    }
+                    
+                    // Store för köade transaktioner (offline)
+                    if (!db.objectStoreNames.contains('pendingTransactions')) {
+                        const transactionsStore = db.createObjectStore('pendingTransactions', { keyPath: 'localId', autoIncrement: true });
+                        transactionsStore.createIndex('timestamp', 'timestamp', { unique: false });
+                        transactionsStore.createIndex('synced', 'synced', { unique: false });
+                        console.log('PendingTransactions store skapad');
+                    }
+                };
+            });
+        }
+        
+        // Spara produkter i IndexedDB
+        async function saveProductsToIndexedDB(productList) {
+            if (!db) return;
+            
+            try {
+                const transaction = db.transaction(['products'], 'readwrite');
+                const store = transaction.objectStore('products');
+                
+                // Rensa gamla produkter
+                await store.clear();
+                
+                // Spara nya produkter
+                for (const product of productList) {
+                    await store.add(product);
                 }
                 
-                products = result.data || [];
-                displayProducts(products);
-                showStatus('Produkter laddade!', 'success');
+                console.log('Produkter sparade i IndexedDB:', productList.length);
             } catch (error) {
-                console.error('Fel vid laddning av produkter:', error);
-                displayBackupProducts();
+                console.error('Fel vid sparande av produkter i IndexedDB:', error);
             }
+        }
+        
+        // Ladda produkter från IndexedDB
+        async function loadProductsFromIndexedDB() {
+            if (!db) return [];
+            
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['products'], 'readonly');
+                const store = transaction.objectStore('products');
+                const request = store.getAll();
+                
+                request.onsuccess = () => {
+                    console.log('Produkter laddade från IndexedDB:', request.result.length);
+                    resolve(request.result);
+                };
+                
+                request.onerror = () => {
+                    console.error('Fel vid laddning från IndexedDB');
+                    reject(request.error);
+                };
+            });
+        }
+        
+        // Spara transaktion i kö (offline)
+        async function queueTransaction(purchaseData) {
+            if (!db) return;
+            
+            try {
+                const transaction = db.transaction(['pendingTransactions'], 'readwrite');
+                const store = transaction.objectStore('pendingTransactions');
+                
+                const queuedItem = {
+                    ...purchaseData,
+                    timestamp: new Date().toISOString(),
+                    synced: false
+                };
+                
+                await store.add(queuedItem);
+                console.log('Transaktion köad för synkning');
+                await updateSyncBadge();
+                showStatus('Transaktion sparad offline - synkas när internet återkommer', 'success');
+            } catch (error) {
+                console.error('Fel vid köning av transaktion:', error);
+            }
+        }
+        
+        // Hämta väntande transaktioner
+        async function getPendingTransactions() {
+            if (!db) return [];
+            
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['pendingTransactions'], 'readonly');
+                const store = transaction.objectStore('pendingTransactions');
+                const index = store.index('synced');
+                const request = index.getAll(false);
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
+        // Ta bort synkad transaktion
+        async function removeSyncedTransaction(localId) {
+            if (!db) return;
+            
+            try {
+                const transaction = db.transaction(['pendingTransactions'], 'readwrite');
+                const store = transaction.objectStore('pendingTransactions');
+                await store.delete(localId);
+                console.log('Synkad transaktion borttagen:', localId);
+            } catch (error) {
+                console.error('Fel vid borttagning av synkad transaktion:', error);
+            }
+        }
+        
+        // Uppdatera sync badge
+        async function updateSyncBadge() {
+            try {
+                const pending = await getPendingTransactions();
+                const badge = document.getElementById('syncBadge');
+                
+                if (pending.length > 0) {
+                    badge.textContent = `${pending.length} att synka`;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Fel vid uppdatering av sync badge:', error);
+            }
+        }
+        
+        // Synka väntande transaktioner
+        async function syncPendingTransactions() {
+            if (!isOnline) {
+                console.log('Offline - hoppar över synkning');
+                return;
+            }
+            
+            try {
+                const pending = await getPendingTransactions();
+                console.log('Försöker synka transaktioner:', pending.length);
+                
+                for (const transaction of pending) {
+                    try {
+                        // Försök skicka till backend
+                        const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=createPurchase`, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(transaction)
+                        });
+                        
+                        // Ta bort från kö
+                        await removeSyncedTransaction(transaction.localId);
+                        console.log('Transaktion synkad:', transaction.localId);
+                        
+                    } catch (error) {
+                        console.error('Fel vid synkning av transaktion:', transaction.localId, error);
+                        // Fortsätt med nästa transaktion
+                    }
+                }
+                
+                await updateSyncBadge();
+                
+                if (pending.length > 0) {
+                    showStatus(`${pending.length} transaktioner synkade!`, 'success');
+                }
+                
+            } catch (error) {
+                console.error('Fel vid synkning av transaktioner:', error);
+            }
+        }
+        
+        // ===== ONLINE/OFFLINE HANTERING =====
+        function updateOnlineStatus() {
+            isOnline = navigator.onLine;
+            const indicator = document.getElementById('onlineIndicator');
+            const text = document.getElementById('onlineText');
+            
+            if (isOnline) {
+                indicator.className = 'online-indicator online';
+                text.textContent = 'Online';
+                console.log('Status: ONLINE');
+                
+                // Försök synka när vi kommer online
+                syncPendingTransactions();
+            } else {
+                indicator.className = 'online-indicator offline';
+                text.textContent = 'Offline';
+                console.log('Status: OFFLINE');
+            }
+        }
+        
+        // Lyssna på online/offline events
+        window.addEventListener('online', () => {
+            console.log('Internetanslutning återupprättad');
+            updateOnlineStatus();
+        });
+        
+        window.addEventListener('offline', () => {
+            console.log('Internetanslutning bortkopplad');
+            updateOnlineStatus();
+        });
+        
+        // ===== PRODUKTHANTERING =====
+        async function loadProducts() {
+            try {
+                // Försök först ladda från nätverk om online
+                if (isOnline) {
+                    console.log('Online - laddar produkter från Google Sheets...');
+                    const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=getProducts`);
+                    const result = await response.json();
+                    
+                    if (result.error) {
+                        throw new Error(result.error);
+                    }
+                    
+                    products = result.data || [];
+                    
+                    // Spara i IndexedDB för offline-användning
+                    await saveProductsToIndexedDB(products);
+                    
+                    displayProducts(products);
+                    showStatus('Produkter laddade från server!', 'success');
+                    return;
+                }
+            } catch (error) {
+                console.error('Fel vid laddning från server:', error);
+            }
+            
+            // Fallback: Ladda från IndexedDB (offline eller server misslyckades)
+            try {
+                console.log('Laddar produkter från IndexedDB...');
+                const cachedProducts = await loadProductsFromIndexedDB();
+                
+                if (cachedProducts && cachedProducts.length > 0) {
+                    products = cachedProducts;
+                    displayProducts(products);
+                    showStatus('Produkter laddade från cache (offline)', 'success');
+                    return;
+                }
+            } catch (error) {
+                console.error('Fel vid laddning från IndexedDB:', error);
+            }
+            
+            // Sista utväg: Backup produkter
+            console.log('Använder backup-produkter');
+            displayBackupProducts();
         }
         
         // Visa produkter
@@ -645,6 +946,7 @@
             displayProducts(backupProducts);
         }
         
+        // ===== VARUKORG & ORDER =====
         // Lägg till i order
         function addToOrder(name, price, vatRate, productId) {
             currentOrder.push({ name, price, vatRate, productId, timestamp: new Date().toISOString() });
@@ -691,11 +993,10 @@
             updateCart();
         }
         
-        // Spara köp till Google Sheets (i bakgrunden)
+        // ===== BETALNING & BACKEND =====
+        // Spara köp till Google Sheets (med offline-stöd)
         async function savePurchaseToBackend() {
             try {
-                console.log('Sparar köp i bakgrunden...');
-                
                 const totalAmount = currentOrder.reduce((sum, item) => sum + item.price, 0);
                 const cashierName = document.getElementById('cashierInput').value.trim() || 'Okänd kassa';
                 
@@ -725,18 +1026,24 @@
                     swish_reference: 'SWISH_' + Date.now()
                 };
                 
-                console.log('Data som ska sparas:', purchaseData);
+                if (isOnline) {
+                    console.log('Online - sparar direkt till Google Sheets');
+                    
+                    const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=createPurchase`, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(purchaseData)
+                    });
+                    
+                    console.log('Köp sparat i Google Sheets');
+                } else {
+                    console.log('Offline - köar transaktion för senare synkning');
+                    await queueTransaction(purchaseData);
+                }
                 
-                const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=createPurchase`, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(purchaseData)
-                });
-                
-                console.log('Köp sparat i Google Sheets');
                 return {
                     id: 'BIK-' + Date.now(),
                     created_at: new Date().toISOString(),
@@ -745,6 +1052,42 @@
                 
             } catch (error) {
                 console.error('FEL vid sparande:', error);
+                
+                // Om sparning misslyckades, köa transaktionen
+                if (db) {
+                    console.log('Sparning misslyckades - köar för senare');
+                    const totalAmount = currentOrder.reduce((sum, item) => sum + item.price, 0);
+                    const cashierName = document.getElementById('cashierInput').value.trim() || 'Okänd kassa';
+                    
+                    let vatAmount = 0;
+                    const itemsWithVat = currentOrder.map(item => {
+                        const vatRate = item.vatRate || 12;
+                        const itemVat = (item.price * vatRate) / (100 + vatRate);
+                        vatAmount += itemVat;
+                        
+                        return {
+                            name: item.name,
+                            quantity: 1,
+                            price: item.price,
+                            vat_rate: vatRate,
+                            total: item.price,
+                            vat_amount: parseFloat(itemVat.toFixed(2))
+                        };
+                    });
+                    
+                    const purchaseData = {
+                        items: itemsWithVat,
+                        amount: parseFloat((totalAmount - vatAmount).toFixed(2)),
+                        vat_amount: parseFloat(vatAmount.toFixed(2)),
+                        total_amount: totalAmount,
+                        status: 'completed',
+                        cashier_name: cashierName,
+                        swish_reference: 'SWISH_' + Date.now()
+                    };
+                    
+                    await queueTransaction(purchaseData);
+                }
+                
                 return {
                     id: 'local_' + Date.now(),
                     created_at: new Date().toISOString(),
@@ -753,6 +1096,7 @@
             }
         }
         
+        // ===== SWISH QR & BETALNING =====
         // Skapa Swish QR
         async function createSwishQR() {
             if (currentOrder.length === 0) {
@@ -815,6 +1159,7 @@
             showStatus('Transaktion klar! Redo för nästa kund', 'success');
         }
         
+        // ===== KVITTO =====
         // Skapa kvitto efter betalning
         window.createReceipt = function() {
             if (currentOrder.length === 0) {
@@ -836,7 +1181,7 @@
                 swishNumber: '1234701777',
                 companyName: 'BIK Karlskoga café',
                 message: 'BIK Karlskoga café',
-                cashier: 'Kassör'
+                cashier: document.getElementById('cashierInput').value.trim() || 'Kassör'
             };
             
             const receiptJson = JSON.stringify(currentReceiptData);
@@ -920,6 +1265,7 @@
                         <h2 style="margin: 5px 0;">BIK KARLSKOGA CAFÉ</h2>
                         <p style="margin: 5px 0;">KVITTO</p>
                         <p style="margin: 5px 0;">${currentReceiptData.timestamp}</p>
+                        <p style="margin: 5px 0;">Kassör: ${currentReceiptData.cashier}</p>
                     </div>
                     ${currentReceiptData.items.map(item => {
                         const vatRate = item.vatRate || 12;
@@ -951,20 +1297,7 @@
             clearCart();
         }
         
-        // Stäng modal utan att rensa (används inte längre)
-        function closeModal() {
-            document.getElementById('qrModal').style.display = 'none';
-        }
-        
-        // Visa statusmeddelande
-        function showStatus(message, type) {
-            const statusEl = document.getElementById('statusMessage');
-            statusEl.textContent = message;
-            statusEl.className = `status-message status-${type}`;
-            statusEl.style.display = 'block';
-            setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
-        }
-        
+        // ===== KVITTO-URL HANTERING =====
         // Hantera kvitto-URL
         function handleReceiptURL() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -1008,6 +1341,7 @@
                     <h3>Köpdetaljer</h3>
                     <p><strong>Datum:</strong> ${receiptData.timestamp}</p>
                     <p><strong>Kvitto-ID:</strong> ${receiptData.id}</p>
+                    <p><strong>Kassör:</strong> ${receiptData.cashier}</p>
                 </div>
                 <div class="receipt-section">
                     <h3>Produkter</h3>
@@ -1032,9 +1366,38 @@
             document.getElementById('receiptPage').style.display = 'block';
         }
         
+        // ===== HJÄLPFUNKTIONER =====
+        // Visa statusmeddelande
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            statusEl.className = `status-message status-${type}`;
+            statusEl.style.display = 'block';
+            setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
+        }
+        
+        // ===== INITIERING =====
         // Event listeners
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Initiera IndexedDB först
+            try {
+                await initIndexedDB();
+                console.log('IndexedDB initierad');
+            } catch (error) {
+                console.error('Kunde inte initiera IndexedDB:', error);
+                showStatus('Varning: Offline-läge kanske inte fungerar', 'error');
+            }
+            
+            // Uppdatera online-status
+            updateOnlineStatus();
+            
+            // Uppdatera sync badge
+            await updateSyncBadge();
+            
+            // Hantera kvitto-URL
             handleReceiptURL();
+            
+            // Ladda produkter
             loadProducts();
             
             // Ladda sparad kassa från localStorage
@@ -1058,14 +1421,21 @@
                     }
                 }
             });
+            
+            // Försök synka var 30:e sekund om online
+            setInterval(() => {
+                if (isOnline) {
+                    syncPendingTransactions();
+                }
+            }, 30000);
         });
 
         // Registrera Service Worker för offline-stöd
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js')
-        .then(reg => console.log('Service Worker registrerad'))
-        .catch(err => console.log('Service Worker misslyckades:', err));
-}
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(reg => console.log('Service Worker registrerad'))
+                .catch(err => console.log('Service Worker misslyckades:', err));
+        }
         
     </script>
 </body>
