@@ -668,18 +668,64 @@
         }
         
         function updateTransactionTable() {
-            if (filteredPurchases.length === 0) {
-                const message = Object.keys(activeFilters).length > 0 
-                    ? 'Inga transaktioner matchar de valda filtren'
-                    : 'Inga transaktioner för vald period';
-                document.getElementById('tableContent').innerHTML = 
-                    `<div class="empty-state">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-                        </svg>
-                        <p>${message}</p>
-                    </div>`;
-                return;
-            }
-            let tableHTML = `
-                <
+    if (filteredPurchases.length === 0) {
+        const message = Object.keys(activeFilters).length > 0 
+            ? 'Inga transaktioner matchar de valda filtren'
+            : 'Inga transaktioner för vald period';
+
+        document.getElementById('tableContent').innerHTML = 
+            `<div class="empty-state">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                </svg>
+                <p>${message}</p>
+            </div>`;
+        return;
+    }
+
+    let tableHTML = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Tid</th>
+                    <th>Kvitto-ID</th>
+                    <th>Produkter</th>
+                    <th>Belopp ex. moms</th>
+                    <th>Moms</th>
+                    <th>Totalt</th>
+                    <th>Kassa</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    filteredPurchases.forEach(purchase => {
+        const date = new Date(purchase.created_at);
+        const products = Array.isArray(purchase.items)
+            ? purchase.items.map(item => `${item.name} (${item.quantity || 1})`).join(', ')
+            : '-';
+
+        const amount = Number(purchase.amount || 0).toFixed(2);
+        const vat = Number(purchase.vat_amount || 0).toFixed(2);
+        const total = Number(purchase.total_amount || 0).toFixed(2);
+
+        tableHTML += `
+            <tr>
+                <td>${date.toLocaleString('sv-SE')}</td>
+                <td><span style="font-family: monospace; font-size: 0.85rem;">${purchase.id}</span></td>
+                <td>${products}</td>
+                <td>${amount} kr</td>
+                <td>${vat} kr</td>
+                <td><strong>${total} kr</strong></td>
+                <td>${purchase.cashier_name || '-'}</td>
+            </tr>
+        `;
+    });
+
+    tableHTML += `
+            </tbody>
+        </table>
+    `;
+
+    document.getElementById('tableContent').innerHTML = tableHTML;
+}
