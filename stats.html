@@ -332,7 +332,7 @@
       <h2>Transaktionsdetaljer</h2>
       <div class="table-wrapper">
         <div id="tableContent">
-          <div class="loading">Laddar transaktioner från Google Sheets...</div>
+          <div class="loading">Laddar transaktioner...</div>
         </div>
       </div>
     </div>
@@ -458,7 +458,7 @@
         updateTransactionTable();
       } catch (error) {
         console.error('Fel vid laddning av statistik:', error);
-        document.getElementById('tableContent').innerHTML = `<div class="error">Kunde inte ladda statistik från Google Sheets: ${error.message}</div>`;
+        document.getElementById('tableContent').innerHTML = `<div class="error">Kunde inte ladda statistik: ${error.message}</div>`;
         // Rensa grafer så vi inte visar gammal data
         if (salesChart) { salesChart.destroy(); salesChart = null; }
         if (productChart) { productChart.destroy(); productChart = null; }
@@ -918,7 +918,7 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       updateDateTime();
-      setInterval(updateDateTime, 60_000);
+      // setInterval(updateDateTime, 60_000);
 
       setDateRange('week');
 
