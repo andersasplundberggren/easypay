@@ -326,15 +326,24 @@
       renderStockTable();
     }
 
-    // POST helpers
+    // Hjälpare: hämta aktuellt saldo för en produkt (för bekräftelse efter POST)
+    function onHandFor(pid) {
+      const s = STOCK.find(x => String(x.product_id) === String(pid));
+      return s ? Number(s.on_hand || 0) : 0;
+    }
+
+    // POST helper: undvik preflight (no-cors, inga headers). Svar blir "opaque".
     async function postJSON(action, payload) {
-      const res = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=${action}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      // Apps Script kan ibland returnera tom body vid no-cors; här antar vi CORS ok.
-      try { return await res.json(); } catch { return {}; }
+      try {
+        await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=${action}`, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: JSON.stringify(payload)
+        });
+        return { ok: true };
+      } catch (e) {
+        return { ok: false, error: e.message };
+      }
     }
 
     // Handlers
@@ -347,19 +356,27 @@
       if (!pid) return toast('Välj produkt', 'err');
       if (!(qty > 0)) return toast('Antal måste vara > 0', 'err');
 
+      const before = onHandFor(pid);
       const btn = document.getElementById('inSubmit');
       btn.disabled = true;
-      const data = await postJSON('addStock', { product_id: pid, quantity: qty, unit_cost: cost, note });
+
+      const res = await postJSON('addStock', { product_id: pid, quantity: qty, unit_cost: cost, note });
       btn.disabled = false;
 
-      if (data && !data.error) {
+      if (!res.ok) {
+        return toast(res.error || 'Kunde inte registrera påfyllning', 'err');
+      }
+
+      await refreshAll(); // hämta nytt saldo
+      const after = onHandFor(pid);
+
+      if (after >= before + qty) {
         toast('Påfyllning registrerad');
         document.getElementById('inQty').value = '';
         document.getElementById('inCost').value = '';
         document.getElementById('inNote').value = '';
-        await refreshAll();
       } else {
-        toast(data.error || 'Kunde inte registrera påfyllning', 'err');
+        toast('Kunde inte bekräfta påfyllning – kontrollera deployment och product_id.', 'err');
       }
     }
 
@@ -371,18 +388,27 @@
       if (!pid) return toast('Välj produkt', 'err');
       if (!qty) return toast('Ange en förändring (+/−)', 'err');
 
+      const before = onHandFor(pid);
       const btn = document.getElementById('adjSubmit');
       btn.disabled = true;
-      const data = await postJSON('adjustStock', { product_id: pid, quantity: qty, note });
+
+      const res = await postJSON('adjustStock', { product_id: pid, quantity: qty, note });
       btn.disabled = false;
 
-      if (data && !data.error) {
+      if (!res.ok) {
+        return toast(res.error || 'Kunde inte registrera justering', 'err');
+      }
+
+      await refreshAll();
+      const after = onHandFor(pid);
+
+      const ok = (qty > 0 && after >= before + qty) || (qty < 0 && after <= before + qty);
+      if (ok) {
         toast('Justering registrerad');
         document.getElementById('adjQty').value = '';
         document.getElementById('adjNote').value = '';
-        await refreshAll();
       } else {
-        toast(data.error || 'Kunde inte registrera justering', 'err');
+        toast('Kunde inte bekräfta justering – kontrollera deployment och product_id.', 'err');
       }
     }
 
