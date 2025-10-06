@@ -1,0 +1,232 @@
+// ========================================
+// BIK KARLSKOGA KASSASYSTEM - GOOGLE APPS SCRIPT BACKEND (OPTIMERAD)
+// ========================================
+
+const PRODUCTS_SHEET = 'products';
+const PURCHASES_SHEET = 'purchases';
+
+// ========================================
+// HUVUDFUNKTION - Tar emot alla HTTP-anrop
+// ========================================
+function doGet(e) {
+  const action = e.parameter.action;
+  
+  try {
+    if (action === 'getProducts') {
+      return getProducts();
+    } else if (action === 'getPurchases') {
+      return getPurchases(e.parameter);
+    } else {
+      return createResponse({
+        error: 'Ogiltig action. Använd: getProducts eller getPurchases'
+      }, 400);
+    }
+  } catch (error) {
+    return createResponse({
+      error: 'Serverfel: ' + error.message
+    }, 500);
+  }
+}
+
+function doPost(e) {
+  const action = e.parameter.action;
+  
+  try {
+    if (action === 'createPurchase') {
+      return createPurchase(e);
+    } else {
+      return createResponse({
+        error: 'Ogiltig action. Använd: createPurchase'
+      }, 400);
+    }
+  } catch (error) {
+    return createResponse({
+      error: 'Serverfel: ' + error.message
+    }, 500);
+  }
+}
+
+// ========================================
+// HÄMTA PRODUKTER (OPTIMERAD)
+// ========================================
+function getProducts() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(PRODUCTS_SHEET);
+  
+  if (!sheet) {
+    return createResponse({
+      error: 'Produktflik hittades inte'
+    }, 404);
+  }
+  
+  const data = sheet.getDataRange().getValues();
+  if (data.length <= 1) {
+    return createResponse({ data: [], count: 0 });
+  }
+  
+  const headers = data[0];
+  const products = [];
+  
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (!row[0]) continue;
+    
+    const product = {};
+    for (let j = 0; j < headers.length; j++) {
+      product[headers[j]] = row[j];
+    }
+    
+    if (product.active === true || product.active === 'TRUE') {
+      products.push(product);
+    }
+  }
+  
+  return createResponse({
+    data: products,
+    count: products.length
+  });
+}
+
+// ========================================
+// HÄMTA TRANSAKTIONER (OPTIMERAD)
+// ========================================
+function getPurchases(params) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(PURCHASES_SHEET);
+  
+  if (!sheet) {
+    return createResponse({ error: 'Transaktionsflik hittades inte' }, 404);
+  }
+  
+  const data = sheet.getDataRange().getValues();
+  
+  if (data.length <= 1) {
+    return createResponse({ data: [], count: 0 });
+  }
+  
+  const headers = data[0];
+  const purchases = [];
+  
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (!row[0]) continue;
+    
+    const purchase = {};
+    for (let j = 0; j < headers.length; j++) {
+      let value = row[j];
+      
+      if (headers[j] === 'items' && typeof value === 'string') {
+        try {
+          value = JSON.parse(value);
+        } catch (e) {
+          value = [];
+        }
+      }
+      
+      purchase[headers[j]] = value;
+    }
+    
+    if (params.startDate || params.endDate) {
+      const createdAt = new Date(purchase.created_at);
+      
+      if (params.startDate) {
+        const startDate = new Date(params.startDate);
+        if (createdAt < startDate) continue;
+      }
+      
+      if (params.endDate) {
+        const endDate = new Date(params.endDate);
+        endDate.setHours(23, 59, 59, 999);
+        if (createdAt > endDate) continue;
+      }
+    }
+    
+    purchases.push(purchase);
+  }
+  
+  purchases.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  
+  return createResponse({
+    data: purchases,
+    count: purchases.length
+  });
+}
+
+// ========================================
+// SKAPA NYTT KÖP (OPTIMERAD - SNABBARE SKRIVNING)
+// ========================================
+function createPurchase(e) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(PURCHASES_SHEET);
+  
+  if (!sheet) {
+    return createResponse({ error: 'Transaktionsflik hittades inte' }, 404);
+  }
+  
+  let purchaseData;
+  try {
+    purchaseData = JSON.parse(e.postData.contents);
+  } catch (error) {
+    return createResponse({ error: 'Ogiltig JSON-data: ' + error.message }, 400);
+  }
+  
+  if (!purchaseData.items || !Array.isArray(purchaseData.items) || purchaseData.items.length === 0) {
+    return createResponse({ error: 'Items måste vara en icke-tom array' }, 400);
+  }
+  
+  if (!purchaseData.total_amount || purchaseData.total_amount <= 0) {
+    return createResponse({ error: 'total_amount måste vara större än 0' }, 400);
+  }
+  
+  // Generera unikt ID
+  const timestamp = Date.now();
+  const id = `BIK-${timestamp}-${Math.floor(Math.random() * 1000)}`;
+  
+  // Stockholm-tid
+  const stockholmTime = Utilities.formatDate(
+    new Date(), 
+    "Europe/Stockholm", 
+    "yyyy-MM-dd HH:mm:ss"
+  );
+  
+  // Skapa rad med data
+  const newRow = [
+    id,
+    stockholmTime,
+    purchaseData.cashier_name || 'Anonym',
+    JSON.stringify(purchaseData.items),
+    purchaseData.amount || 0,
+    purchaseData.vat_amount || 0,
+    purchaseData.total_amount,
+    purchaseData.status || 'completed',
+    purchaseData.swish_reference || ''
+  ];
+  
+  // OPTIMERAD SKRIVNING - Snabbare än appendRow()
+  const lastRow = sheet.getLastRow() + 1;
+  sheet.getRange(lastRow, 1, 1, newRow.length).setValues([newRow]);
+  
+  // Returnera snabbt
+  return createResponse({
+    data: {
+      id: id,
+      created_at: stockholmTime,
+      total_amount: purchaseData.total_amount
+    },
+    message: 'Köp sparat!'
+  });
+}
+
+// ========================================
+// HJÄLPFUNKTION - Skapa HTTP-respons
+// ========================================
+function createResponse(data, statusCode = 200) {
+  const output = ContentService.createTextOutput(JSON.stringify(data));
+  output.setMimeType(ContentService.MimeType.JSON);
+  
+  if (statusCode !== 200) {
+    data.statusCode = statusCode;
+  }
+  
+  return output;
+}
