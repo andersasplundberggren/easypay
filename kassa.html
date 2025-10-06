@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BIK Karlskoga - Café Kassa</title>
+    <meta name="theme-color" content="#2b4c7e">
+    <link rel="manifest" href="manifest.json">
     
     <style>
         * {
@@ -1057,6 +1059,14 @@
                 }
             });
         });
+
+        // Registrera Service Worker för offline-stöd
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+        .then(reg => console.log('Service Worker registrerad'))
+        .catch(err => console.log('Service Worker misslyckades:', err));
+}
+        
     </script>
 </body>
 </html>
