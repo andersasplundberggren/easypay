@@ -2,7 +2,6 @@ const CACHE_NAME = 'bik-kassa-v3';
 const urlsToCache = [
   '/',
   '/kassa.html',
-  '/offline.html',
   '/stats.html',
   '/index.html',
   'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js',
