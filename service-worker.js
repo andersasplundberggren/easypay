@@ -1,9 +1,11 @@
-const CACHE_NAME = 'bik-kassa-v2';
+const CACHE_NAME = 'bik-kassa-v3';
 const urlsToCache = [
   '/',
   '/kassa.html',
+  '/offline.html',
   '/stats.html',
   '/index.html',
+  'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js',
   'https://cdn.jsdelivr.net/npm/chart.js',
   'https://sportality.cdn.s8y.se/team-logos/bik1_bik.svg'
 ];
@@ -16,7 +18,7 @@ self.addEventListener('install', event => {
         console.log('Caching files');
         return cache.addAll(urlsToCache);
       })
-      .then(() => self.skipWaiting()) // Aktivera direkt
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -49,6 +51,22 @@ self.addEventListener('fetch', event => {
     return;
   }
   
+  // Network First för QR Server API (för fallback)
+  if (url.hostname === 'api.qrserver.com') {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseToCache);
+          });
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+  
   // Cache First för statiska resurser
   event.respondWith(
     caches.match(event.request)
@@ -58,8 +76,13 @@ self.addEventListener('fetch', event => {
         }
         
         return fetch(event.request).then(response => {
-          // Cacha nya resurser dynamiskt
+          // Cacha endast GET requests och giltiga responses
           if (!response || response.status !== 200 || response.type === 'error') {
+            return response;
+          }
+          
+          // Cacha inte POST/PUT/DELETE requests
+          if (event.request.method !== 'GET') {
             return response;
           }
           
@@ -69,6 +92,10 @@ self.addEventListener('fetch', event => {
           });
           
           return response;
+        }).catch(error => {
+          console.log('Fetch failed:', error);
+          // Returnera en fallback-sida om det finns
+          return caches.match('/index.html');
         });
       })
   );
