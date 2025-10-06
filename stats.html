@@ -1,952 +1,1580 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BIK Karlskoga – Försäljningsstatistik</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIK Karlskoga - Försäljningsstatistik</title>
 
-  <!-- PWA / theming / icon -->
-  <meta name="theme-color" content="#1e3c72" />
-  <link rel="icon" href="https://sportality.cdn.s8y.se/team-logos/bik1_bik.svg" />
-  <meta name="color-scheme" content="light only" />
-
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-
-  <!-- Chart.js & SheetJS (defer för snabbare rendering) -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
-
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --primary: #1e3c72;
-      --primary-dark: #152a4f;
-      --secondary: #2a5298;
-      --success: #10b981;
-      --danger: #ef4444;
-      --info: #3b82f6;
-      --dark: #1f2937;
-      --light: #f9fafb;
-      --border: #e5e7eb;
-      --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-    }
-
-    /* Header */
-    .header {
-      background: rgba(255, 255, 255, 0.95);
-      -webkit-backdrop-filter: blur(10px);
-      backdrop-filter: blur(10px);
-      padding: 1.5rem 2rem;
-      box-shadow: var(--shadow-lg);
-      margin-bottom: 2rem;
-      border-bottom: 3px solid var(--primary);
-    }
-
-    .header-content {
-      max-width: 1400px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .header h1 {
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: var(--dark);
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .header h1 a { color: inherit; text-decoration: none; display: flex; align-items: center; gap: .5rem; }
-    .header h1 a:hover { text-decoration: underline; text-underline-offset: 3px; }
-
-    .header .logo { width: 40px; height: 40px; }
-
-    .header-info { text-align: right; }
-    .header-info .date-time { font-size: 0.9rem; color: var(--dark); font-weight: 500; }
-    .header-info .status { font-size: 0.8rem; color: var(--success); margin-top: 0.25rem; }
-
-    /* Container */
-    .container { max-width: 1400px; margin: 0 auto; padding: 0 1rem 2rem; }
-
-    /* Controls */
-    .controls {
-      background: white;
-      padding: 1.5rem;
-      border-radius: 12px;
-      box-shadow: var(--shadow-lg);
-      margin-bottom: 1.5rem;
-      display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;
-    }
-    .control-group { display: flex; align-items: center; gap: 0.5rem; }
-    .control-group label { font-size: 0.875rem; font-weight: 500; color: var(--dark); white-space: nowrap; }
-    .controls input, .controls select {
-      padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.875rem; background: white; transition: all 0.2s;
-    }
-    .controls input:focus, .controls select:focus {
-      outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
-    }
-    .btn { padding: 0.5rem 1rem; border: none; border-radius: 8px; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: var(--shadow-lg); }
-    .btn-success { background: var(--success); color: white; }
-    .btn-success:hover { background: #059669; transform: translateY(-1px); box-shadow: var(--shadow-lg); }
-    .btn-danger { background: var(--danger); color: white; }
-    .btn-danger:hover { background: #dc2626; transform: translateY(-1px); box-shadow: var(--shadow-lg); }
-    .export-buttons { display: flex; gap: 0.5rem; margin-left: auto; }
-
-    /* Stats grid */
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-    .stat-card { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow); border-left: 4px solid var(--primary); transition: all 0.3s; position: relative; overflow: hidden; }
-    .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
-    .stat-card::before { content: ''; position: absolute; top: 0; right: 0; width: 80px; height: 80px; background: linear-gradient(135deg, rgba(30,60,114,0.1) 0%, rgba(30,60,114,0.05) 100%); border-radius: 50%; transform: translate(20px, -20px); }
-    .stat-card h3 { color: #6b7280; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
-    .stat-card .value { color: var(--dark); font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; line-height: 1; }
-    .stat-card .change { font-size: 0.875rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.25rem 0.5rem; border-radius: 6px; background: rgba(16,185,129,0.1); color: var(--success); }
-    .stat-card .change.negative { background: rgba(239,68,68,0.1); color: var(--danger); }
-    .stat-card .change::before { content: '↑'; font-weight: bold; }
-    .stat-card .change.negative::before { content: '↓'; }
-
-    /* Charts */
-    .chart-container { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 1.5rem; transition: all 0.3s; }
-    .chart-container:hover { box-shadow: var(--shadow-lg); }
-    .chart-container h2 { color: var(--dark); font-size: 1.125rem; font-weight: 600; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
-    .chart-container h2::after { content: ''; flex: 1; height: 2px; background: linear-gradient(90deg, var(--border) 0%, transparent 100%); margin-left: 1rem; }
-    .chart-wrapper { position: relative; height: 400px; }
-    .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-
-    /* Filters */
-    .table-filters { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 1rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; }
-    .filter-group { display: flex; align-items: center; gap: 0.5rem; }
-    .filter-group label { font-size: 0.875rem; font-weight: 500; color: var(--dark); white-space: nowrap; }
-    .filter-actions { display: flex; gap: 0.5rem; margin-left: auto; }
-    .active-filters { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
-    .filter-badge { background: var(--primary); color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.5rem; }
-    .filter-badge button { background: rgba(255,255,255,0.3); border: none; color: white; border-radius: 50%; width: 16px; height: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; line-height: 1; }
-    .filter-badge button:hover { background: rgba(255,255,255,0.5); }
-
-    /* Table */
-    .table-container { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
-    .table-container h2 { color: var(--dark); font-size: 1.125rem; font-weight: 600; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
-    .table-wrapper { overflow-x: auto; margin: -1.5rem; padding: 1.5rem; }
-    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.875rem; }
-    thead { background: var(--light); position: sticky; top: 0; z-index: 10; }
-    th { padding: 0.75rem 1rem; text-align: left; font-weight: 600; color: var(--dark); border-bottom: 2px solid var(--border); white-space: nowrap; }
-    th:first-child { border-top-left-radius: 8px; }
-    th:last-child { border-top-right-radius: 8px; }
-    td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); color: #4b5563; }
-    tbody tr { transition: all 0.2s; }
-    tbody tr:hover { background: rgba(30,60,114,0.03); }
-    tbody tr:last-child td { border-bottom: none; }
-    /* Monospace alignment for numbers */
-    td:nth-child(4), td:nth-child(5), td:nth-child(6) { font-variant-numeric: tabular-nums; }
-
-    /* States */
-    .loading { text-align: center; padding: 3rem; color: #6b7280; font-size: 0.875rem; }
-    .loading::before { content: ''; display: inline-block; width: 24px; height: 24px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-right: 0.5rem; vertical-align: middle; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .error { background: #fef2f2; color: #991b1b; padding: 1rem; border-radius: 8px; border-left: 4px solid var(--danger); margin: 1rem 0; font-size: 0.875rem; }
-    .empty-state { text-align: center; padding: 3rem; color: #6b7280; }
-    .empty-state svg { width: 64px; height: 64px; margin: 0 auto 1rem; opacity: 0.3; }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .header-content { flex-direction: column; gap: 1rem; text-align: center; }
-      .header-info { text-align: center; }
-      .stats-grid { grid-template-columns: 1fr; }
-      .chart-grid { grid-template-columns: 1fr; }
-      .controls { flex-direction: column; align-items: stretch; }
-      .control-group { flex-direction: column; align-items: stretch; }
-      .export-buttons { margin-left: 0; flex-direction: column; }
-      .table-filters { flex-direction: column; align-items: stretch; }
-      .filter-group { flex-direction: column; align-items: stretch; }
-      .filter-actions { margin-left: 0; flex-direction: column; }
-      .table-wrapper { margin: -1rem; padding: 1rem; }
-    }
-
-    /* Print */
-    @media print {
-      body { background: white; }
-      .header { background: white; border-bottom: 2px solid black; margin-bottom: 1rem; }
-      .controls, .table-filters { display: none; }
-      .stat-card, .chart-container, .table-container { box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; }
-    }
-  </style>
+    <!-- Chart.js för grafer -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- SheetJS för Excel-export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        :root {
+            --primary: #1e3c72;
+            --primary-dark: #152a4f;
+            --secondary: #2a5298;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --border: #e5e7eb;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+        }
+        
+        /* Modern Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem 2rem;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 2rem;
+            border-bottom: 3px solid var(--primary);
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .header .logo {
+            width: 40px;
+            height: 40px;
+        }
+        
+        .header-info {
+            text-align: right;
+        }
+        
+        .header-info .date-time {
+            font-size: 0.9rem;
+            color: var(--dark);
+            font-weight: 500;
+        }
+        
+        .header-info .status {
+            font-size: 0.8rem;
+            color: var(--success);
+            margin-top: 0.25rem;
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem 2rem;
+        }
+        
+        /* Modern Controls */
+        .controls {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .control-group label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--dark);
+            white-space: nowrap;
+        }
+        
+        .controls input, .controls select {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            background: white;
+            transition: all 0.2s;
+        }
+        
+        .controls input:focus, .controls select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .export-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: auto;
+        }
+        
+        /* Modern Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, rgba(30, 60, 114, 0.1) 0%, rgba(30, 60, 114, 0.05) 100%);
+            border-radius: 50%;
+            transform: translate(20px, -20px);
+        }
+        
+        .stat-card .icon {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            font-size: 1.5rem;
+            opacity: 0.3;
+        }
+        
+        .stat-card h3 {
+            color: #6b7280;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-card .value {
+            color: var(--dark);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+        
+        .stat-card .change {
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+        
+        .stat-card .change.negative {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+        
+        .stat-card .change::before {
+            content: '↑';
+            font-weight: bold;
+        }
+        
+        .stat-card .change.negative::before {
+            content: '↓';
+        }
+        
+        /* Modern Chart Container */
+        .chart-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+            transition: all 0.3s;
+        }
+        
+        .chart-container:hover {
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .chart-container h2 {
+            color: var(--dark);
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .chart-container h2::after {
+            content: '';
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(90deg, var(--border) 0%, transparent 100%);
+            margin-left: 1rem;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+        }
+        
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        /* Table Filters */
+        .table-filters {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .filter-group label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--dark);
+            white-space: nowrap;
+        }
+        
+        .filter-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: auto;
+        }
+        
+        .filter-badge {
+            background: var(--primary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .filter-badge button {
+            background: rgba(255, 255, 255, 0.3);
+            border: none;
+            color: white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            line-height: 1;
+        }
+        
+        .filter-badge button:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .active-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        /* Modern Table */
+        .table-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        
+        .table-container h2 {
+            color: var(--dark);
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .table-wrapper {
+            overflow-x: auto;
+            margin: -1.5rem;
+            padding: 1.5rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.875rem;
+        }
+        
+        thead {
+            background: var(--light);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        th {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--dark);
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+        
+        th:first-child {
+            border-top-left-radius: 8px;
+        }
+        
+        th:last-child {
+            border-top-right-radius: 8px;
+        }
+        
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            color: #4b5563;
+        }
+        
+        tbody tr {
+            transition: all 0.2s;
+        }
+        
+        tbody tr:hover {
+            background: rgba(30, 60, 114, 0.03);
+        }
+        
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Loading and Error States */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        
+        .loading::before {
+            content: '';
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #fef2f2;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--danger);
+            margin: 1rem 0;
+            font-size: 0.875rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6b7280;
+        }
+        
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1rem;
+            opacity: 0.3;
+        }
+        
+        /* Stock Status Table */
+        .stock-table {
+            width: 100%;
+            font-size: 0.875rem;
+        }
+        
+        .stock-table th {
+            background: var(--light);
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--dark);
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .stock-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .stock-table tr:hover {
+            background: rgba(30, 60, 114, 0.03);
+        }
+        
+        .stock-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .stock-ok {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .stock-low {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .stock-critical {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .stock-out {
+            background: #d6d6d6;
+            color: #333;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .header-info {
+                text-align: center;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .control-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .export-buttons {
+                margin-left: 0;
+                flex-direction: column;
+            }
+            
+            .table-filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-actions {
+                margin-left: 0;
+                flex-direction: column;
+            }
+            
+            .table-wrapper {
+                margin: -1rem;
+                padding: 1rem;
+            }
+        }
+        
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .header {
+                background: white;
+                border-bottom: 2px solid black;
+                margin-bottom: 1rem;
+            }
+            
+            .controls, .table-filters {
+                display: none;
+            }
+            
+            .stat-card, .chart-container, .table-container {
+                box-shadow: none;
+                border: 1px solid #ddd;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
 </head>
 <body>
-  <!-- Header -->
-  <div class="header">
-    <div class="header-content">
-      <h1>
-        <a href="index.html" title="Till startsidan">
-          <img src="https://sportality.cdn.s8y.se/team-logos/bik1_bik.svg" alt="BIK" class="logo" />
-          BIK Karlskoga <span style="opacity:.7;font-weight:600">/ Försäljningsstatistik</span>
-        </a>
-      </h1>
-      <div class="header-info">
-        <div class="date-time" id="currentDateTime">Laddar...</div>
-        <div class="status">● System Online</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="container">
-    <!-- Controls -->
-    <div class="controls">
-      <div class="control-group">
-        <label for="periodSelect">Period:</label>
-        <select id="periodSelect">
-          <option value="today">Idag</option>
-          <option value="yesterday">Igår</option>
-          <option value="week" selected>Denna vecka</option>
-          <option value="month">Denna månad</option>
-          <option value="lastMonth">Förra månaden</option>
-          <option value="custom">Anpassad</option>
-        </select>
-      </div>
-
-      <div class="control-group">
-        <label for="startDate">Från:</label>
-        <input type="date" id="startDate" />
-      </div>
-
-      <div class="control-group">
-        <label for="endDate">Till:</label>
-        <input type="date" id="endDate" />
-      </div>
-
-      <button class="btn btn-primary" id="btnUpdate">Uppdatera</button>
-
-      <div class="export-buttons">
-        <button class="btn btn-success" id="btnExcel">Excel</button>
-        <button class="btn btn-success" id="btnCSV">CSV</button>
-        <button class="btn btn-success" onclick="window.print()">Skriv ut</button>
-      </div>
-    </div>
-
-    <!-- Stats -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <h3>Total försäljning</h3>
-        <div class="value" id="totalSales">0 kr</div>
-        <span class="change" id="salesChange">+0%</span>
-      </div>
-
-      <div class="stat-card">
-        <h3>Antal transaktioner</h3>
-        <div class="value" id="totalTransactions">0</div>
-        <span class="change" id="transChange">+0%</span>
-      </div>
-
-      <div class="stat-card">
-        <h3>Snittköp</h3>
-        <div class="value" id="avgTransaction">0 kr</div>
-        <span class="change" id="avgChange">+0%</span>
-      </div>
-
-      <div class="stat-card">
-        <h3>Mest sålda produkt</h3>
-        <div class="value" id="topProduct" style="font-size: 1.25rem;">-</div>
-        <span class="change" id="topProductCount" style="background: rgba(59,130,246,0.1); color: var(--info);">0 st</span>
-      </div>
-    </div>
-
-    <!-- Charts -->
-    <div class="chart-container">
-      <h2>Försäljning över tid</h2>
-      <div class="chart-wrapper">
-        <canvas id="salesChart"></canvas>
-      </div>
-    </div>
-
-    <div class="chart-grid">
-      <div class="chart-container">
-        <h2>Produktfördelning</h2>
-        <div class="chart-wrapper" style="height: 300px;">
-          <canvas id="productChart"></canvas>
+    <!-- Modern Header -->
+    <div class="header">
+        <div class="header-content">
+            <h1>
+                <img src="https://sportality.cdn.s8y.se/team-logos/bik1_bik.svg" alt="BIK" class="logo">
+                BIK Karlskoga Försäljningsstatistik
+            </h1>
+            <div class="header-info">
+                <div class="date-time" id="currentDateTime">Laddar...</div>
+                <div class="status">● System Online</div>
+            </div>
         </div>
-      </div>
-
-      <div class="chart-container">
-        <h2>Topp 10 produkter</h2>
-        <div class="chart-wrapper" style="height: 300px;">
-          <canvas id="topProductsChart"></canvas>
+    </div>
+    
+    <div class="container">
+        <!-- Modern Controls -->
+        <div class="controls">
+            <div class="control-group">
+                <label>Period:</label>
+                <select id="periodSelect">
+                    <option value="today">Idag</option>
+                    <option value="yesterday">Igår</option>
+                    <option value="week" selected>Denna vecka</option>
+                    <option value="month">Denna månad</option>
+                    <option value="lastMonth">Förra månaden</option>
+                    <option value="custom">Anpassad</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label>Från:</label>
+                <input type="date" id="startDate">
+            </div>
+            
+            <div class="control-group">
+                <label>Till:</label>
+                <input type="date" id="endDate">
+            </div>
+            
+            <button class="btn btn-primary" onclick="loadStatistics()">
+                Uppdatera
+            </button>
+            
+            <div class="export-buttons">
+                <button class="btn btn-success" onclick="exportToExcel()">
+                    Excel
+                </button>
+                <button class="btn btn-success" onclick="exportToCSV()">
+                    CSV
+                </button>
+                <button class="btn btn-success" onclick="window.print()">
+                    Skriv ut
+                </button>
+            </div>
         </div>
-      </div>
-    </div>
-
-    <!-- Filters -->
-    <div class="table-filters">
-      <div class="filter-group">
-        <label for="searchFilter">Sök:</label>
-        <input type="text" id="searchFilter" placeholder="Sök i alla fält..." />
-      </div>
-
-      <div class="filter-group">
-        <label for="cashierFilter">Kassa:</label>
-        <select id="cashierFilter">
-          <option value="">Alla kassor</option>
-        </select>
-      </div>
-
-      <div class="filter-group">
-        <label for="minAmountFilter">Belopp från:</label>
-        <input type="number" id="minAmountFilter" placeholder="0" min="0" step="0.01" />
-      </div>
-
-      <div class="filter-group">
-        <label for="maxAmountFilter">till:</label>
-        <input type="number" id="maxAmountFilter" placeholder="9999" min="0" step="0.01" />
-      </div>
-
-      <div class="filter-group">
-        <label for="productFilter">Produkt:</label>
-        <input type="text" id="productFilter" placeholder="Produktnamn..." />
-      </div>
-
-      <div class="filter-actions">
-        <button class="btn btn-primary" id="btnFilter">Filtrera</button>
-        <button class="btn btn-danger" id="btnClear">Rensa</button>
-      </div>
-    </div>
-
-    <!-- Active filters -->
-    <div id="activeFiltersContainer" class="table-filters" style="display: none;">
-      <strong>Aktiva filter:</strong>
-      <div class="active-filters" id="activeFilters"></div>
-    </div>
-
-    <!-- Table -->
-    <div class="table-container">
-      <h2>Transaktionsdetaljer</h2>
-      <div class="table-wrapper">
-        <div id="tableContent">
-          <div class="loading">Laddar transaktioner...</div>
+        
+        <!-- Modern Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="icon"></span>
+                <h3>Total försäljning</h3>
+                <div class="value" id="totalSales">0 kr</div>
+                <span class="change" id="salesChange">+0%</span>
+            </div>
+            
+            <div class="stat-card">
+                <span class="icon"></span>
+                <h3>Antal transaktioner</h3>
+                <div class="value" id="totalTransactions">0</div>
+                <span class="change" id="transChange">+0%</span>
+            </div>
+            
+            <div class="stat-card">
+                <span class="icon"></span>
+                <h3>Snittköp</h3>
+                <div class="value" id="avgTransaction">0 kr</div>
+                <span class="change" id="avgChange">+0%</span>
+            </div>
+            
+            <div class="stat-card">
+                <span class="icon"></span>
+                <h3>Mest sålda produkt</h3>
+                <div class="value" id="topProduct" style="font-size: 1.25rem;">-</div>
+                <span class="change" id="topProductCount" style="background: rgba(59, 130, 246, 0.1); color: var(--info);">0 st</span>
+            </div>
         </div>
-      </div>
+        
+        <!-- Charts -->
+        <div class="chart-container">
+            <h2>Försäljning över tid</h2>
+            <div class="chart-wrapper">
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-grid">
+            <div class="chart-container">
+                <h2>Lagerstatus</h2>
+                <button class="btn btn-primary" onclick="calculateStock()" style="margin-bottom: 15px;">
+                    Beräkna lagerstatus
+                </button>
+                <div class="chart-wrapper" style="height: auto; max-height: 400px; overflow-y: auto;">
+                    <div id="stockStatus">
+                        <div class="empty-state">
+                            <p>Klicka på knappen för att beräkna lagerstatus</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h2>Topp 10 produkter</h2>
+                <div class="chart-wrapper" style="height: 300px;">
+                    <canvas id="topProductsChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Table Filters -->
+        <div class="table-filters">
+            <div class="filter-group">
+                <label>Sök:</label>
+                <input type="text" id="searchFilter" placeholder="Sök i alla fält...">
+            </div>
+            
+            <div class="filter-group">
+                <label>Kassa:</label>
+                <select id="cashierFilter">
+                    <option value="">Alla kassor</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>Belopp från:</label>
+                <input type="number" id="minAmountFilter" placeholder="0" min="0" step="0.01">
+            </div>
+            
+            <div class="filter-group">
+                <label>till:</label>
+                <input type="number" id="maxAmountFilter" placeholder="9999" min="0" step="0.01">
+            </div>
+            
+            <div class="filter-group">
+                <label>Produkt:</label>
+                <input type="text" id="productFilter" placeholder="Produktnamn...">
+            </div>
+            
+            <div class="filter-actions">
+                <button class="btn btn-primary" onclick="applyTableFilters()">
+                    Filtrera
+                </button>
+                <button class="btn btn-danger" onclick="clearTableFilters()">
+                    Rensa
+                </button>
+            </div>
+        </div>
+        
+        <!-- Active Filters Display -->
+        <div id="activeFiltersContainer" class="table-filters" style="display: none;">
+            <strong>Aktiva filter:</strong>
+            <div class="active-filters" id="activeFilters">
+                <!-- Filter badges will be inserted here -->
+            </div>
+        </div>
+        
+        <!-- Modern Table -->
+        <div class="table-container">
+            <h2>Transaktionsdetaljer</h2>
+            <div class="table-wrapper">
+                <div id="tableContent">
+                    <div class="loading">Laddar transaktioner...</div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-
-  <script>
-    // ==========================
-    // KONFIGURATION
-    // ==========================
-    // Byt till din Apps Script Web App URL vid behov
-    const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwWADYHeT2clN3DSHnIvp-d24APaKiacETGSWK4EecuzjoKru1RbB7a3MsxuqIBrPw/exec';
-
-    // ==========================
-    // HJÄLPFUNKTIONER
-    // ==========================
-    const pad2 = (n) => String(n).padStart(2, '0');
-    function formatDateLocal(date) {
-      // YYYY-MM-DD i lokal tid (undviker UTC-avklippning)
-      return `${date.getFullYear()}-${pad2(date.getMonth()+1)}-${pad2(date.getDate())}`;
-    }
-    function onlyDateKeyLocal(d) { // returnerar YYYY-MM-DD för Date
-      return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
-    }
-    function toNumber(n, d = 2) {
-      const x = Number(n);
-      return Number.isFinite(x) ? x.toFixed(d) : (0).toFixed(d);
-    }
-
-    function updateDateTime() {
-      const now = new Date();
-      document.getElementById('currentDateTime').textContent = now.toLocaleString('sv-SE', {
-        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-      });
-    }
-
-    function setDateRange(period) {
-      const today = new Date();
-      const startDate = document.getElementById('startDate');
-      const endDate = document.getElementById('endDate');
-
-      switch (period) {
-        case 'today': {
-          startDate.value = formatDateLocal(today);
-          endDate.value = formatDateLocal(today);
-          break;
+    
+    <script>
+        // ========================================
+        // GOOGLE SHEETS API KONFIGURATION
+        // ========================================
+        // VIKTIGT: BYT UT DENNA URL MOT DIN WEB APP URL!
+        const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwWADYHeT2clN3DSHnIvp-d24APaKiacETGSWK4EecuzjoKru1RbB7a3MsxuqIBrPw/exec';
+        
+        // ========================================
+        // GLOBALA VARIABLER
+        // ========================================
+        let allPurchases = [];
+        let filteredPurchases = [];
+        let salesChart = null;
+        let productChart = null;
+        let topProductsChart = null;
+        let activeFilters = {};
+        
+        // ========================================
+        // DATUM OCH TID
+        // ========================================
+        function updateDateTime() {
+            const now = new Date();
+            document.getElementById('currentDateTime').textContent = 
+                now.toLocaleString('sv-SE', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
         }
-        case 'yesterday': {
-          const y = new Date(today);
-          y.setDate(y.getDate() - 1);
-          startDate.value = formatDateLocal(y);
-          endDate.value = formatDateLocal(y);
-          break;
-        }
-        case 'week': {
-          // ISO-vecka börjar måndag
-          const day = (today.getDay() + 6) % 7; // Mån=0..Sön=6
-          const weekStart = new Date(today);
-          weekStart.setDate(today.getDate() - day);
-          startDate.value = formatDateLocal(weekStart);
-          endDate.value = formatDateLocal(today);
-          break;
-        }
-        case 'month': {
-          const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-          startDate.value = formatDateLocal(monthStart);
-          endDate.value = formatDateLocal(today);
-          break;
-        }
-        case 'lastMonth': {
-          const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-          const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
-          startDate.value = formatDateLocal(lastMonthStart);
-          endDate.value = formatDateLocal(lastMonthEnd);
-          break;
-        }
-        case 'custom':
-        default:
-          break;
-      }
-    }
-
-    // ==========================
-    // GLOBAL STATE
-    // ==========================
-    let allPurchases = [];
-    let filteredPurchases = [];
-    let activeFilters = {};
-    let salesChart = null;
-    let productChart = null;
-    let topProductsChart = null;
-
-    // ==========================
-    // DATAHÄMTNING
-    // ==========================
-    async function loadStatistics() {
-      try {
-        const startDate = document.getElementById('startDate').value;
-        const endDate = document.getElementById('endDate').value;
-        if (!startDate || !endDate) {
-          alert('Välj både start- och slutdatum');
-          return;
-        }
-
-        document.getElementById('tableContent').innerHTML = '<div class="loading">Laddar transaktioner...</div>';
-
-        const url = `${GOOGLE_APPS_SCRIPT_URL}?action=getPurchases&startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`;
-        const response = await fetch(url, { cache: 'no-store' });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-        let result;
-        try { result = await response.json(); }
-        catch { throw new Error('Ogiltigt JSON-svar från backend'); }
-
-        if (result.error) throw new Error(result.error);
-
-        allPurchases = Array.isArray(result.data) ? result.data : [];
-        filteredPurchases = [...allPurchases];
-
-        populateCashierFilter();
-        updateOverviewCards();
-        updateSalesChart();
-        updateProductCharts();
-        updateTransactionTable();
-      } catch (error) {
-        console.error('Fel vid laddning av statistik:', error);
-        document.getElementById('tableContent').innerHTML = `<div class="error">Kunde inte ladda statistik: ${error.message}</div>`;
-        // Rensa grafer så vi inte visar gammal data
-        if (salesChart) { salesChart.destroy(); salesChart = null; }
-        if (productChart) { productChart.destroy(); productChart = null; }
-        if (topProductsChart) { topProductsChart.destroy(); topProductsChart = null; }
-      }
-    }
-
-    // ==========================
-    // FILTERS
-    // ==========================
-    function applyTableFilters() {
-      const search = document.getElementById('searchFilter').value.toLowerCase();
-      const cashier = document.getElementById('cashierFilter').value;
-      const minAmount = parseFloat(document.getElementById('minAmountFilter').value) || 0;
-      const maxAmount = parseFloat(document.getElementById('maxAmountFilter').value) || Infinity;
-      const product = document.getElementById('productFilter').value.toLowerCase();
-
-      activeFilters = {};
-      if (search) activeFilters.search = search;
-      if (cashier) activeFilters.cashier = cashier;
-      if (minAmount > 0) activeFilters.minAmount = minAmount;
-      if (maxAmount < Infinity) activeFilters.maxAmount = maxAmount;
-      if (product) activeFilters.product = product;
-
-      filteredPurchases = allPurchases.filter(purchase => {
-        if (activeFilters.search) {
-          const searchableText = [
-            purchase.id,
-            purchase.cashier_name || '',
-            purchase.items ? purchase.items.map(item => item.name).join(' ') : '',
-            String(purchase.total_amount ?? ''),
-            new Date(purchase.created_at).toLocaleString('sv-SE')
-          ].join(' ').toLowerCase();
-          if (!searchableText.includes(activeFilters.search)) return false;
-        }
-        if (activeFilters.cashier && purchase.cashier_name !== activeFilters.cashier) return false;
-        const amount = Number(purchase.total_amount) || 0;
-        if (amount < activeFilters.minAmount || amount > activeFilters.maxAmount) return false;
-        if (activeFilters.product) {
-          const hasProduct = purchase.items && purchase.items.some(item =>
-            (item.name || '').toLowerCase().includes(activeFilters.product)
-          );
-          if (!hasProduct) return false;
-        }
-        return true;
-      });
-
-      updateActiveFiltersDisplay();
-      updateTransactionTable();
-    }
-
-    function clearTableFilters() {
-      document.getElementById('searchFilter').value = '';
-      document.getElementById('cashierFilter').value = '';
-      document.getElementById('minAmountFilter').value = '';
-      document.getElementById('maxAmountFilter').value = '';
-      document.getElementById('productFilter').value = '';
-      activeFilters = {};
-      filteredPurchases = [...allPurchases];
-      updateActiveFiltersDisplay();
-      updateTransactionTable();
-    }
-
-    function updateActiveFiltersDisplay() {
-      const container = document.getElementById('activeFiltersContainer');
-      const filtersDiv = document.getElementById('activeFilters');
-      if (Object.keys(activeFilters).length === 0) {
-        container.style.display = 'none';
-        return;
-      }
-      container.style.display = 'flex';
-      filtersDiv.innerHTML = '';
-
-      Object.entries(activeFilters).forEach(([key, value]) => {
-        let label = '';
-        let displayValue = value;
-        switch (key) {
-          case 'search': label = 'Sök'; break;
-          case 'cashier': label = 'Kassa'; break;
-          case 'minAmount': label = 'Min belopp'; displayValue = `${value} kr`; break;
-          case 'maxAmount': label = 'Max belopp'; displayValue = `${value} kr`; break;
-          case 'product': label = 'Produkt'; break;
-        }
-        const badge = document.createElement('div');
-        badge.className = 'filter-badge';
-        badge.innerHTML = `${label}: ${displayValue} <button onclick="removeFilter('${key}')" title="Ta bort filter">✕</button>`;
-        filtersDiv.appendChild(badge);
-      });
-    }
-
-    function removeFilter(filterKey) {
-      delete activeFilters[filterKey];
-      switch (filterKey) {
-        case 'search': document.getElementById('searchFilter').value = ''; break;
-        case 'cashier': document.getElementById('cashierFilter').value = ''; break;
-        case 'minAmount': document.getElementById('minAmountFilter').value = ''; break;
-        case 'maxAmount': document.getElementById('maxAmountFilter').value = ''; break;
-        case 'product': document.getElementById('productFilter').value = ''; break;
-      }
-      applyTableFilters();
-    }
-
-    function populateCashierFilter() {
-      const cashiers = [...new Set(allPurchases.map(p => p.cashier_name).filter(n => n && n.trim()))].sort();
-      const select = document.getElementById('cashierFilter');
-      const currentValue = select.value;
-      select.innerHTML = '<option value="">Alla kassor</option>';
-      cashiers.forEach(cashier => {
-        const option = document.createElement('option');
-        option.value = cashier;
-        option.textContent = cashier;
-        select.appendChild(option);
-      });
-      // Behåll tidigare val om det fortfarande finns, annars reset
-      if ([...select.options].some(o => o.value === currentValue)) {
-        select.value = currentValue;
-      } else {
-        select.value = '';
-      }
-    }
-
-    // ==========================
-    // ÖVERSIKTSKORT
-    // ==========================
-    function updateOverviewCards() {
-      const totalSales = allPurchases.reduce((sum, p) => sum + Number(p.total_amount || 0), 0);
-      const totalTransactions = allPurchases.length;
-      const avgTransaction = totalTransactions > 0 ? totalSales / totalTransactions : 0;
-
-      const productCounts = {};
-      allPurchases.forEach(p => {
-        if (Array.isArray(p.items)) {
-          p.items.forEach(item => {
-            const name = item.name || '-';
-            const qty = Number(item.quantity || 1);
-            productCounts[name] = (productCounts[name] || 0) + qty;
-          });
-        }
-      });
-
-      const topProductEntry = Object.entries(productCounts).sort((a, b) => b[1] - a[1])[0];
-
-      document.getElementById('totalSales').textContent = `${Math.round(totalSales)} kr`;
-      document.getElementById('totalTransactions').textContent = totalTransactions;
-      document.getElementById('avgTransaction').textContent = `${Math.round(avgTransaction)} kr`;
-
-      if (topProductEntry) {
-        document.getElementById('topProduct').textContent = topProductEntry[0];
-        document.getElementById('topProductCount').textContent = `${topProductEntry[1]} st`;
-      } else {
-        document.getElementById('topProduct').textContent = '-';
-        document.getElementById('topProductCount').textContent = '0 st';
-      }
-    }
-
-    // ==========================
-    // GRAFER
-    // ==========================
-    function updateSalesChart() {
-      const ctx = document.getElementById('salesChart').getContext('2d');
-
-      const salesByDay = {};
-      allPurchases.forEach(p => {
-        const d = new Date(p.created_at);
-        const key = onlyDateKeyLocal(d);
-        salesByDay[key] = (salesByDay[key] || 0) + Number(p.total_amount || 0);
-      });
-
-      const sortedDates = Object.keys(salesByDay).sort((a, b) => new Date(a) - new Date(b));
-
-      if (!sortedDates.length) {
-        if (salesChart) { salesChart.destroy(); salesChart = null; }
-        const { width, height } = ctx.canvas;
-        ctx.clearRect(0, 0, width, height);
-        return;
-      }
-
-      const labels = sortedDates.map(date => {
-        const d = new Date(date);
-        return d.toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' });
-      });
-
-      if (salesChart) salesChart.destroy();
-      salesChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [{
-            label: 'Försäljning (kr)',
-            data: sortedDates.map(date => salesByDay[date]),
-            borderColor: '#667eea',
-            backgroundColor: 'rgba(102, 126, 234, 0.1)',
-            borderWidth: 3,
-            tension: 0.4,
-            fill: true,
-            pointBackgroundColor: '#667eea',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2,
-            pointRadius: 4,
-            pointHoverRadius: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: 'rgba(0,0,0,0.8)',
-              padding: 12,
-              cornerRadius: 8,
-              callbacks: {
-                title: (ctx) => {
-                  const i = ctx[0].dataIndex;
-                  const fullDate = new Date(sortedDates[i]);
-                  return fullDate.toLocaleDateString('sv-SE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                },
-                label: (ctx) => `Försäljning: ${ctx.parsed.y.toFixed(0)} kr`
-              }
+        
+        function setDateRange(period) {
+            const today = new Date();
+            const startDate = document.getElementById('startDate');
+            const endDate = document.getElementById('endDate');
+            
+            switch(period) {
+                case 'today':
+                    startDate.value = today.toISOString().split('T')[0];
+                    endDate.value = today.toISOString().split('T')[0];
+                    break;
+                case 'yesterday':
+                    const yesterday = new Date(today);
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    startDate.value = yesterday.toISOString().split('T')[0];
+                    endDate.value = yesterday.toISOString().split('T')[0];
+                    break;
+                case 'week':
+                    const weekStart = new Date(today);
+                    weekStart.setDate(today.getDate() - today.getDay() + 1);
+                    startDate.value = weekStart.toISOString().split('T')[0];
+                    endDate.value = today.toISOString().split('T')[0];
+                    break;
+                case 'month':
+                    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+                    startDate.value = monthStart.toISOString().split('T')[0];
+                    endDate.value = today.toISOString().split('T')[0];
+                    break;
+                case 'lastMonth':
+                    const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                    const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+                    startDate.value = lastMonthStart.toISOString().split('T')[0];
+                    endDate.value = lastMonthEnd.toISOString().split('T')[0];
+                    break;
             }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              grid: { color: 'rgba(0,0,0,0.05)' },
-              ticks: { callback: (v) => v + ' kr' }
-            },
-            x: { grid: { display: false } }
-          }
         }
-      });
-    }
-
-    function updateProductCharts() {
-      const productSales = {};
-      allPurchases.forEach(p => {
-        if (Array.isArray(p.items)) {
-          p.items.forEach(item => {
-            const name = item.name || '-';
-            const qty = Number(item.quantity || 1);
-            const price = Number(item.price || 0);
-            if (!productSales[name]) productSales[name] = { quantity: 0, revenue: 0 };
-            productSales[name].quantity += qty;
-            productSales[name].revenue += price * qty;
-          });
-        }
-      });
-
-      const sorted = Object.entries(productSales).sort((a, b) => b[1].revenue - a[1].revenue);
-
-      // PIE / doughnut
-      const pieCtx = document.getElementById('productChart').getContext('2d');
-      if (!sorted.length) {
-        if (productChart) { productChart.destroy(); productChart = null; }
-      } else {
-        const top = sorted.slice(0, 6);
-        const otherRevenue = sorted.slice(6).reduce((s, [, d]) => s + d.revenue, 0);
-        if (productChart) productChart.destroy();
-        productChart = new Chart(pieCtx, {
-          type: 'doughnut',
-          data: {
-            labels: [...top.map(([name]) => name), otherRevenue > 0 ? 'Övrigt' : null].filter(Boolean),
-            datasets: [{
-              data: [...top.map(([, d]) => d.revenue), otherRevenue].filter(v => v > 0),
-              backgroundColor: ['#667eea', '#8b5cf6', '#ec4899', '#f43f5e', '#f97316', '#facc15', '#a3a3a3'],
-              borderWidth: 0,
-              hoverOffset: 10
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { position: 'bottom', labels: { padding: 15, font: { size: 11 } } },
-              tooltip: {
-                backgroundColor: 'rgba(0,0,0,0.8)',
-                padding: 12,
-                cornerRadius: 8,
-                callbacks: {
-                  label: (ctx) => {
-                    const label = ctx.label || '';
-                    const value = ctx.parsed || 0;
-                    const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                    const percentage = total ? ((value / total) * 100).toFixed(1) : '0.0';
-                    return `${label}: ${value.toFixed(0)} kr (${percentage}%)`;
-                  }
+        
+        // ========================================
+        // FILTER FUNKTIONER
+        // ========================================
+        function applyTableFilters() {
+            const search = document.getElementById('searchFilter').value.toLowerCase();
+            const cashier = document.getElementById('cashierFilter').value;
+            const minAmount = parseFloat(document.getElementById('minAmountFilter').value) || 0;
+            const maxAmount = parseFloat(document.getElementById('maxAmountFilter').value) || Infinity;
+            const product = document.getElementById('productFilter').value.toLowerCase();
+            
+            activeFilters = {};
+            
+            if (search) activeFilters.search = search;
+            if (cashier) activeFilters.cashier = cashier;
+            if (minAmount > 0) activeFilters.minAmount = minAmount;
+            if (maxAmount < Infinity) activeFilters.maxAmount = maxAmount;
+            if (product) activeFilters.product = product;
+            
+            filteredPurchases = allPurchases.filter(purchase => {
+                // Sök i alla fält
+                if (activeFilters.search) {
+                    const searchableText = [
+                        purchase.id,
+                        purchase.cashier_name || '',
+                        purchase.items ? purchase.items.map(item => item.name).join(' ') : '',
+                        purchase.total_amount?.toString() || '',
+                        new Date(purchase.created_at).toLocaleString('sv-SE')
+                    ].join(' ').toLowerCase();
+                    
+                    if (!searchableText.includes(activeFilters.search)) return false;
                 }
-              }
-            }
-          }
-        });
-      }
-
-      // BAR top 10
-      const barCtx = document.getElementById('topProductsChart').getContext('2d');
-      if (!sorted.length) {
-        if (topProductsChart) { topProductsChart.destroy(); topProductsChart = null; }
-      } else {
-        const top10 = sorted.slice(0, 10);
-        if (topProductsChart) topProductsChart.destroy();
-        topProductsChart = new Chart(barCtx, {
-          type: 'bar',
-          data: {
-            labels: top10.map(([name]) => name),
-            datasets: [{
-              label: 'Antal sålda',
-              data: top10.map(([, d]) => d.quantity),
-              backgroundColor: 'rgba(102, 126, 234, 0.8)',
-              borderRadius: 6,
-              hoverBackgroundColor: 'rgba(102,126,234,1)'
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', padding: 12, cornerRadius: 8 } },
-            scales: {
-              y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { stepSize: 1 } },
-              x: { grid: { display: false } }
-            }
-          }
-        });
-      }
-    }
-
-    // ==========================
-    // TABELL
-    // ==========================
-    function updateTransactionTable() {
-      const target = document.getElementById('tableContent');
-      if (!filteredPurchases.length) {
-        const message = Object.keys(activeFilters).length ? 'Inga transaktioner matchar de valda filtren' : 'Inga transaktioner för vald period';
-        target.innerHTML = `
-          <div class="empty-state">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-            </svg>
-            <p>${message}</p>
-          </div>`;
-        return;
-      }
-
-      let html = `
-        <table>
-          <thead>
-            <tr>
-              <th>Tid</th>
-              <th>Kvitto-ID</th>
-              <th>Produkter</th>
-              <th>Belopp ex. moms</th>
-              <th>Moms</th>
-              <th>Totalt</th>
-              <th>Kassa</th>
-            </tr>
-          </thead>
-          <tbody>`;
-
-      filteredPurchases.forEach(p => {
-        const d = new Date(p.created_at);
-        const products = Array.isArray(p.items) ? p.items.map(i => `${i.name} (${Number(i.quantity||1)})`).join(', ') : '-';
-        html += `
-          <tr>
-            <td>${d.toLocaleString('sv-SE')}</td>
-            <td><span style="font-family: monospace; font-size: 0.8rem;">${p.id}</span></td>
-            <td>${products}</td>
-            <td>${toNumber(p.amount, 2)} kr</td>
-            <td>${toNumber(p.vat_amount, 2)} kr</td>
-            <td><strong>${toNumber(p.total_amount, 2)} kr</strong></td>
-            <td>${p.cashier_name || '-'}</td>
-          </tr>`;
-      });
-
-      html += '</tbody></table>';
-      target.innerHTML = html;
-    }
-
-    // ==========================
-    // EXPORT
-    // ==========================
-    function exportToExcel() {
-      const data = filteredPurchases.length ? filteredPurchases : allPurchases;
-      if (!data.length) { alert('Ingen data att exportera'); return; }
-
-      const excelData = data.map(p => {
-        const products = Array.isArray(p.items) ? p.items.map(i => `${i.name} (${Number(i.quantity||1)})`).join(', ') : '';
-        return {
-          'Datum': new Date(p.created_at).toLocaleString('sv-SE'),
-          'Kvitto-ID': p.id,
-          'Produkter': products,
-          'Belopp ex. moms': Number(p.amount || 0),
-          'Moms': Number(p.vat_amount || 0),
-          'Totalt': Number(p.total_amount || 0),
-          'Kassa': p.cashier_name || '',
-          'Status': p.status || ''
-        };
-      });
-
-      const ws = XLSX.utils.json_to_sheet(excelData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Försäljning');
-
-      const summaryData = [
-        ['Sammanfattning'],
-        ['Period', `${document.getElementById('startDate').value} till ${document.getElementById('endDate').value}`],
-        ['Total försäljning', allPurchases.reduce((s, p) => s + Number(p.total_amount || 0), 0)],
-        ['Antal transaktioner', allPurchases.length],
-        ['Snittköp', allPurchases.length ? allPurchases.reduce((s, p) => s + Number(p.total_amount || 0), 0) / allPurchases.length : 0],
-        ['Filtrerade transaktioner', data.length]
-      ];
-      const ws2 = XLSX.utils.aoa_to_sheet(summaryData);
-      XLSX.utils.book_append_sheet(wb, ws2, 'Sammanfattning');
-
-      const startDate = document.getElementById('startDate').value;
-      const endDate = document.getElementById('endDate').value;
-      const fileName = `BIK_Forsaljning_${startDate}_${endDate}.xlsx`;
-      XLSX.writeFile(wb, fileName);
-    }
-
-    function exportToCSV() {
-      const data = filteredPurchases.length ? filteredPurchases : allPurchases;
-      if (!data.length) { alert('Ingen data att exportera'); return; }
-
-      let csv = 'Datum,Kvitto-ID,Produkter,Belopp ex. moms,Moms,Totalt,Kassa,Status\n';
-      data.forEach(p => {
-        const products = Array.isArray(p.items) ? p.items.map(i => `${i.name} (${Number(i.quantity||1)})`).join('; ') : '';
-        csv += `"${new Date(p.created_at).toLocaleString('sv-SE')}",`;
-        csv += `"${p.id}",`;
-        csv += `"${products}",`;
-        csv += `${Number(p.amount || 0)},`;
-        csv += `${Number(p.vat_amount || 0)},`;
-        csv += `${Number(p.total_amount || 0)},`;
-        csv += `"${p.cashier_name || ''}",`;
-        csv += `"${p.status || ''}"\n`;
-      });
-
-      const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `BIK_Forsaljning_${document.getElementById('startDate').value}_${document.getElementById('endDate').value}.csv`;
-      link.style.display = 'none';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    // ==========================
-    // EVENTS & INIT
-    // ==========================
-    function setupFilterEventListeners() {
-      ['searchFilter', 'minAmountFilter', 'maxAmountFilter', 'productFilter'].forEach(id => {
-        document.getElementById(id).addEventListener('keypress', (e) => { if (e.key === 'Enter') applyTableFilters(); });
-      });
-      document.getElementById('cashierFilter').addEventListener('change', applyTableFilters);
-      document.getElementById('btnFilter').addEventListener('click', applyTableFilters);
-      document.getElementById('btnClear').addEventListener('click', clearTableFilters);
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      //updateDateTime();
-      // setInterval(updateDateTime, 60_000);
-
-      setDateRange('week');
-
-      document.getElementById('periodSelect').addEventListener('change', (e) => {
-        if (e.target.value !== 'custom') {
-          setDateRange(e.target.value);
-          loadStatistics();
+                
+                // Filtrera kassör
+                if (activeFilters.cashier && purchase.cashier_name !== activeFilters.cashier) {
+                    return false;
+                }
+                
+                // Filtrera belopp
+                const amount = parseFloat(purchase.total_amount) || 0;
+                if (amount < activeFilters.minAmount || amount > activeFilters.maxAmount) {
+                    return false;
+                }
+                
+                // Filtrera produkt
+                if (activeFilters.product) {
+                    const hasProduct = purchase.items && purchase.items.some(item => 
+                        item.name.toLowerCase().includes(activeFilters.product)
+                    );
+                    if (!hasProduct) return false;
+                }
+                
+                return true;
+            });
+            
+            updateActiveFiltersDisplay();
+            updateTransactionTable();
         }
-      });
-
-      document.getElementById('btnUpdate').addEventListener('click', loadStatistics);
-      document.getElementById('btnExcel').addEventListener('click', exportToExcel);
-      document.getElementById('btnCSV').addEventListener('click', exportToCSV);
-
-      setupFilterEventListeners();
-      loadStatistics();
-
-      // Auto-refresh var 30:e sekund
-      setInterval(loadStatistics, 30_000);
-    });
-
-    // Snyggare utskrift
-    window.addEventListener('beforeprint', () => {
-      document.querySelectorAll('.chart-wrapper').forEach(w => { w.style.height = 'auto'; });
-    });
-    window.addEventListener('afterprint', () => {
-      document.querySelectorAll('.chart-wrapper').forEach(w => { w.style.height = ''; });
-    });
-  </script>
+        
+        function clearTableFilters() {
+            document.getElementById('searchFilter').value = '';
+            document.getElementById('cashierFilter').value = '';
+            document.getElementById('minAmountFilter').value = '';
+            document.getElementById('maxAmountFilter').value = '';
+            document.getElementById('productFilter').value = '';
+            
+            activeFilters = {};
+            filteredPurchases = [...allPurchases];
+            
+            updateActiveFiltersDisplay();
+            updateTransactionTable();
+        }
+        
+        function updateActiveFiltersDisplay() {
+            const container = document.getElementById('activeFiltersContainer');
+            const filtersDiv = document.getElementById('activeFilters');
+            
+            if (Object.keys(activeFilters).length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            container.style.display = 'flex';
+            filtersDiv.innerHTML = '';
+            
+            Object.entries(activeFilters).forEach(([key, value]) => {
+                let label = '';
+                let displayValue = value;
+                
+                switch(key) {
+                    case 'search':
+                        label = 'Sök';
+                        break;
+                    case 'cashier':
+                        label = 'Kassa';
+                        break;
+                    case 'minAmount':
+                        label = 'Min belopp';
+                        displayValue = `${value} kr`;
+                        break;
+                    case 'maxAmount':
+                        label = 'Max belopp';
+                        displayValue = `${value} kr`;
+                        break;
+                    case 'product':
+                        label = 'Produkt';
+                        break;
+                }
+                
+                const badge = document.createElement('div');
+                badge.className = 'filter-badge';
+                badge.innerHTML = `
+                    ${label}: ${displayValue}
+                    <button onclick="removeFilter('${key}')" title="Ta bort filter">✕</button>
+                `;
+                filtersDiv.appendChild(badge);
+            });
+        }
+        
+        function removeFilter(filterKey) {
+            delete activeFilters[filterKey];
+            
+            // Rensa motsvarande input
+            switch(filterKey) {
+                case 'search':
+                    document.getElementById('searchFilter').value = '';
+                    break;
+                case 'cashier':
+                    document.getElementById('cashierFilter').value = '';
+                    break;
+                case 'minAmount':
+                    document.getElementById('minAmountFilter').value = '';
+                    break;
+                case 'maxAmount':
+                    document.getElementById('maxAmountFilter').value = '';
+                    break;
+                case 'product':
+                    document.getElementById('productFilter').value = '';
+                    break;
+            }
+            
+            applyTableFilters();
+        }
+        
+        function populateCashierFilter() {
+            const cashiers = [...new Set(allPurchases
+                .map(p => p.cashier_name)
+                .filter(name => name && name.trim())
+            )].sort();
+            
+            const select = document.getElementById('cashierFilter');
+            const currentValue = select.value;
+            
+            select.innerHTML = '<option value="">Alla kassor</option>';
+            cashiers.forEach(cashier => {
+                const option = document.createElement('option');
+                option.value = cashier;
+                option.textContent = cashier;
+                if (cashier === currentValue) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+        }
+        
+        // ========================================
+        // LADDA DATA FRÅN GOOGLE SHEETS
+        // ========================================
+        async function loadStatistics() {
+            try {
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                
+                if (!startDate || !endDate) {
+                    alert('Välj både start- och slutdatum');
+                    return;
+                }
+                
+                document.getElementById('tableContent').innerHTML = '<div class="loading">Laddar transaktioner...</div>';
+                
+                const url = `${GOOGLE_APPS_SCRIPT_URL}?action=getPurchases&startDate=${startDate}&endDate=${endDate}`;
+                
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+                
+                allPurchases = result.data || [];
+                filteredPurchases = [...allPurchases];
+                
+                populateCashierFilter();
+                updateOverviewCards();
+                updateSalesChart();
+                updateProductCharts();
+                updateTransactionTable();
+                
+            } catch (error) {
+                console.error('Fel vid laddning av statistik:', error);
+                document.getElementById('tableContent').innerHTML = 
+                    `<div class="error">Kunde inte ladda statistik från Google Sheets: ${error.message}</div>`;
+            }
+        }
+        
+        // ========================================
+        // UPPDATERA ÖVERSIKTSKORT
+        // ========================================
+        function updateOverviewCards() {
+            const totalSales = allPurchases.reduce((sum, p) => sum + parseFloat(p.total_amount || 0), 0);
+            const totalTransactions = allPurchases.length;
+            const avgTransaction = totalTransactions > 0 ? totalSales / totalTransactions : 0;
+            
+            const productCounts = {};
+            allPurchases.forEach(purchase => {
+                if (purchase.items && Array.isArray(purchase.items)) {
+                    purchase.items.forEach(item => {
+                        productCounts[item.name] = (productCounts[item.name] || 0) + (item.quantity || 1);
+                    });
+                }
+            });
+            
+            const topProduct = Object.entries(productCounts)
+                .sort((a, b) => b[1] - a[1])[0];
+            
+            document.getElementById('totalSales').textContent = `${totalSales.toFixed(0)} kr`;
+            document.getElementById('totalTransactions').textContent = totalTransactions;
+            document.getElementById('avgTransaction').textContent = `${avgTransaction.toFixed(0)} kr`;
+            
+            if (topProduct) {
+                document.getElementById('topProduct').textContent = topProduct[0];
+                document.getElementById('topProductCount').textContent = `${topProduct[1]} st`;
+            }
+        }
+        
+        // ========================================
+        // UPPDATERA GRAFER
+        // ========================================
+        function updateSalesChart() {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            
+            const salesByDay = {};
+            allPurchases.forEach(purchase => {
+                const date = new Date(purchase.created_at).toISOString().split('T')[0];
+                salesByDay[date] = (salesByDay[date] || 0) + parseFloat(purchase.total_amount || 0);
+            });
+            
+            const sortedDates = Object.keys(salesByDay).sort((a, b) => 
+                new Date(a) - new Date(b)
+            );
+            
+            const formattedLabels = sortedDates.map(date => {
+                const d = new Date(date);
+                return d.toLocaleDateString('sv-SE', { 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+            });
+            
+            if (salesChart) {
+                salesChart.destroy();
+            }
+            
+            salesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: formattedLabels,
+                    datasets: [{
+                        label: 'Försäljning (kr)',
+                        data: sortedDates.map(date => salesByDay[date]),
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#667eea',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            cornerRadius: 8,
+                            callbacks: {
+                                title: function(context) {
+                                    const index = context[0].dataIndex;
+                                    const fullDate = new Date(sortedDates[index]);
+                                    return fullDate.toLocaleDateString('sv-SE', {
+                                        weekday: 'long',
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric'
+                                    });
+                                },
+                                label: function(context) {
+                                    return `Försäljning: ${context.parsed.y.toFixed(0)} kr`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value + ' kr';
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateProductCharts() {
+            const productSales = {};
+            allPurchases.forEach(purchase => {
+                if (purchase.items && Array.isArray(purchase.items)) {
+                    purchase.items.forEach(item => {
+                        if (!productSales[item.name]) {
+                            productSales[item.name] = {
+                                quantity: 0,
+                                revenue: 0
+                            };
+                        }
+                        productSales[item.name].quantity += (item.quantity || 1);
+                        productSales[item.name].revenue += parseFloat(item.price || 0) * (item.quantity || 1);
+                    });
+                }
+            });
+            
+            const sortedProducts = Object.entries(productSales)
+                .sort((a, b) => b[1].revenue - a[1].revenue);
+            
+            // BAR CHART
+            const barCtx = document.getElementById('topProductsChart').getContext('2d');
+            if (topProductsChart) {
+                topProductsChart.destroy();
+            }
+            
+            const top10 = sortedProducts.slice(0, 10);
+            
+            topProductsChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: top10.map(([name]) => name),
+                    datasets: [{
+                        label: 'Antal sålda',
+                        data: top10.map(([_, data]) => data.quantity),
+                        backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                        borderRadius: 6,
+                        hoverBackgroundColor: 'rgba(102, 126, 234, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            cornerRadius: 8
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                stepSize: 1
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // ========================================
+        // BERÄKNA LAGERSTATUS
+        // ========================================
+        async function calculateStock() {
+            try {
+                document.getElementById('stockStatus').innerHTML = '<div class="loading">Beräknar lagerstatus...</div>';
+                
+                // Hämta produkter med initial_stock
+                const productsResponse = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=getProducts`);
+                const productsResult = await productsResponse.json();
+                
+                if (productsResult.error) {
+                    throw new Error(productsResult.error);
+                }
+                
+                const products = productsResult.data || [];
+                
+                // Räkna antal sålda per produkt från nuvarande period
+                const soldCount = {};
+                allPurchases.forEach(purchase => {
+                    if (purchase.items && Array.isArray(purchase.items)) {
+                        purchase.items.forEach(item => {
+                            soldCount[item.name] = (soldCount[item.name] || 0) + (item.quantity || 1);
+                        });
+                    }
+                });
+                
+                // Bygg lagertabell
+                let tableHTML = `
+                    <table class="stock-table">
+                        <thead>
+                            <tr>
+                                <th>Produkt</th>
+                                <th>Initial lager</th>
+                                <th>Sålt</th>
+                                <th>Kvar</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                products.forEach(product => {
+                    const initialStock = parseInt(product.initial_stock) || 0;
+                    const sold = soldCount[product.name] || 0;
+                    const remaining = initialStock - sold;
+                    
+                    // Bestäm status och färg
+                    let statusClass = 'stock-ok';
+                    let statusText = 'OK';
+                    
+                    if (remaining <= 0) {
+                        statusClass = 'stock-out';
+                        statusText = 'SLUT';
+                    } else if (remaining <= initialStock * 0.1) {
+                        statusClass = 'stock-critical';
+                        statusText = 'KRITISKT';
+                    } else if (remaining <= initialStock * 0.25) {
+                        statusClass = 'stock-low';
+                        statusText = 'LÅGT';
+                    }
+                    
+                    tableHTML += `
+                        <tr>
+                            <td><strong>${product.name}</strong></td>
+                            <td>${initialStock}</td>
+                            <td>${sold}</td>
+                            <td><strong>${remaining}</strong></td>
+                            <td><span class="stock-status ${statusClass}">${statusText}</span></td>
+                        </tr>
+                    `;
+                });
+                
+                tableHTML += '</tbody></table>';
+                
+                document.getElementById('stockStatus').innerHTML = tableHTML;
+                
+            } catch (error) {
+                console.error('Fel vid beräkning av lagerstatus:', error);
+                document.getElementById('stockStatus').innerHTML = 
+                    `<div class="error">Kunde inte beräkna lagerstatus: ${error.message}<br><br>
+                    Kontrollera att du har en kolumn "initial_stock" i products-fliken.</div>`;
+            }
+        }
+        
+        // ========================================
+        // UPPDATERA TRANSAKTIONSTABELL
+        // ========================================
+        function updateTransactionTable() {
+            if (filteredPurchases.length === 0) {
+                const message = Object.keys(activeFilters).length > 0 
+                    ? 'Inga transaktioner matchar de valda filtren'
+                    : 'Inga transaktioner för vald period';
+                    
+                document.getElementById('tableContent').innerHTML = 
+                    `<div class="empty-state">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                        </svg>
+                        <p>${message}</p>
+                    </div>`;
+                return;
+            }
+            
+            let tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tid</th>
+                            <th>Kvitto-ID</th>
+                            <th>Produkter</th>
+                            <th>Belopp ex. moms</th>
+                            <th>Moms</th>
+                            <th>Totalt</th>
+                            <th>Kassa</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            filteredPurchases.forEach(purchase => {
+                const date = new Date(purchase.created_at);
+                const products = purchase.items ? 
+                    purchase.items.map(item => `${item.name} (${item.quantity || 1})`).join(', ') : '-';
+                
+                tableHTML += `
+                    <tr>
+                        <td>${date.toLocaleString('sv-SE')}</td>
+                        <td><span style="font-family: monospace; font-size: 0.8rem;">${purchase.id}</span></td>
+                        <td>${products}</td>
+                        <td>${(purchase.amount || 0).toFixed(2)} kr</td>
+                        <td>${(purchase.vat_amount || 0).toFixed(2)} kr</td>
+                        <td><strong>${(purchase.total_amount || 0).toFixed(2)} kr</strong></td>
+                        <td>${purchase.cashier_name || '-'}</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += '</tbody></table>';
+            document.getElementById('tableContent').innerHTML = tableHTML;
+        }
+        
+        // ========================================
+        // EXPORT FUNKTIONER
+        // ========================================
+        function exportToExcel() {
+            const dataToExport = filteredPurchases.length > 0 ? filteredPurchases : allPurchases;
+            
+            if (dataToExport.length === 0) {
+                alert('Ingen data att exportera');
+                return;
+            }
+            
+            const excelData = dataToExport.map(purchase => {
+                const products = purchase.items ? 
+                    purchase.items.map(item => `${item.name} (${item.quantity || 1})`).join(', ') : '';
+                
+                return {
+                    'Datum': new Date(purchase.created_at).toLocaleString('sv-SE'),
+                    'Kvitto-ID': purchase.id,
+                    'Produkter': products,
+                    'Belopp ex. moms': purchase.amount || 0,
+                    'Moms': purchase.vat_amount || 0,
+                    'Totalt': purchase.total_amount || 0,
+                    'Kassa': purchase.cashier_name || '',
+                    'Status': purchase.status || ''
+                };
+            });
+            
+            const ws = XLSX.utils.json_to_sheet(excelData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Försäljning');
+            
+            const summaryData = [
+                ['Sammanfattning'],
+                ['Period', `${document.getElementById('startDate').value} till ${document.getElementById('endDate').value}`],
+                ['Total försäljning', allPurchases.reduce((sum, p) => sum + (p.total_amount || 0), 0)],
+                ['Antal transaktioner', allPurchases.length],
+                ['Snittköp', allPurchases.length > 0 ? 
+                    allPurchases.reduce((sum, p) => sum + (p.total_amount || 0), 0) / allPurchases.length : 0],
+                ['Filtrerade transaktioner', dataToExport.length]
+            ];
+            
+            const ws2 = XLSX.utils.aoa_to_sheet(summaryData);
+            XLSX.utils.book_append_sheet(wb, ws2, 'Sammanfattning');
+            
+            const fileName = `BIK_Forsaljning_${document.getElementById('startDate').value}_${document.getElementById('endDate').value}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+        
+        function exportToCSV() {
+            const dataToExport = filteredPurchases.length > 0 ? filteredPurchases : allPurchases;
+            
+            if (dataToExport.length === 0) {
+                alert('Ingen data att exportera');
+                return;
+            }
+            
+            let csvContent = 'Datum,Kvitto-ID,Produkter,Belopp ex. moms,Moms,Totalt,Kassa,Status\n';
+            
+            dataToExport.forEach(purchase => {
+                const products = purchase.items ? 
+                    purchase.items.map(item => `${item.name} (${item.quantity || 1})`).join('; ') : '';
+                
+                csvContent += `"${new Date(purchase.created_at).toLocaleString('sv-SE')}",`;
+                csvContent += `"${purchase.id}",`;
+                csvContent += `"${products}",`;
+                csvContent += `${purchase.amount || 0},`;
+                csvContent += `${purchase.vat_amount || 0},`;
+                csvContent += `${purchase.total_amount || 0},`;
+                csvContent += `"${purchase.cashier_name || ''}",`;
+                csvContent += `"${purchase.status || ''}"\n`;
+            });
+            
+            const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `BIK_Forsaljning_${document.getElementById('startDate').value}_${document.getElementById('endDate').value}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // ========================================
+        // EVENT LISTENERS
+        // ========================================
+        function setupFilterEventListeners() {
+            ['searchFilter', 'minAmountFilter', 'maxAmountFilter', 'productFilter'].forEach(id => {
+                document.getElementById(id).addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        applyTableFilters();
+                    }
+                });
+            });
+            
+            document.getElementById('cashierFilter').addEventListener('change', function() {
+                applyTableFilters();
+            });
+        }
+        
+        // ========================================
+        // INIT
+        // ========================================
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDateTime();
+            setInterval(updateDateTime, 60000);
+            
+            setDateRange('week');
+            
+            document.getElementById('periodSelect').addEventListener('change', function(e) {
+                if (e.target.value !== 'custom') {
+                    setDateRange(e.target.value);
+                    loadStatistics();
+                }
+            });
+            
+            setupFilterEventListeners();
+            loadStatistics();
+            
+            // Auto-uppdatering var 30:e sekund
+            setInterval(loadStatistics, 30000);
+        });
+        
+        // ========================================
+        // PRINT STYLING
+        // ========================================
+        window.addEventListener('beforeprint', function() {
+            document.querySelectorAll('.chart-wrapper').forEach(wrapper => {
+                wrapper.style.height = 'auto';
+            });
+        });
+        
+        window.addEventListener('afterprint', function() {
+            document.querySelectorAll('.chart-wrapper').forEach(wrapper => {
+                wrapper.style.height = '';
+            });
+        });
+    </script>
 </body>
 </html>
