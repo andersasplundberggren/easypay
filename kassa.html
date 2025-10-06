@@ -1000,21 +1000,23 @@
                 const totalAmount = currentOrder.reduce((sum, item) => sum + item.price, 0);
                 const cashierName = document.getElementById('cashierInput').value.trim() || 'Okänd kassa';
                 
-                let vatAmount = 0;
-                const itemsWithVat = currentOrder.map(item => {
-                    const vatRate = item.vatRate || 12;
-                    const itemVat = (item.price * vatRate) / (100 + vatRate);
-                    vatAmount += itemVat;
-                    
-                    return {
-                        name: item.name,
-                        quantity: 1,
-                        price: item.price,
-                        vat_rate: vatRate,
-                        total: item.price,
-                        vat_amount: parseFloat(itemVat.toFixed(2))
-                    };
-                });
+               let vatAmount = 0;
+               const itemsWithVat = currentOrder.map(item => {
+              const vatRate = item.vatRate || 12;
+              const itemVat = (item.price * vatRate) / (100 + vatRate);
+              vatAmount += itemVat;
+
+              return {
+                product_id: item.productId,        // <-- VIKTIGT: skicka med ID
+                name: item.name,
+                quantity: 1,
+                price: item.price,
+                vat_rate: vatRate,
+                total: item.price,
+                vat_amount: parseFloat(itemVat.toFixed(2))
+                  };
+            });
+
                 
                 const purchaseData = {
                     items: itemsWithVat,
