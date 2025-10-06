@@ -436,7 +436,7 @@
           return;
         }
 
-        document.getElementById('tableContent').innerHTML = '<div class="loading">Laddar transaktioner från Google Sheets...</div>';
+        document.getElementById('tableContent').innerHTML = '<div class="loading">Laddar transaktioner...</div>';
 
         const url = `${GOOGLE_APPS_SCRIPT_URL}?action=getPurchases&startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`;
         const response = await fetch(url, { cache: 'no-store' });
