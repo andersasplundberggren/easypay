@@ -1,22 +1,25 @@
 {
   "name": "BIK Karlskoga Kassasystem",
   "short_name": "BIK Kassa",
-  "start_url": "/kassa.html",
-  "scope": "/",
-  "display": "standalone",
-  "orientation": "any",
-  "background_color": "#2b4c7e",
+  "description": "Kassasystem och försäljningsstatistik för BIK Karlskoga café.",
+  "lang": "sv-SE",
+  "dir": "ltr",
+
+  "start_url": "./index.html",
+  "scope": "./",
+
+  "display": "browser",
+  "background_color": "#ffffff",
   "theme_color": "#2b4c7e",
-  "description": "Kassasystem och Swishbetalning för BIK Karlskoga café",
+
   "icons": [
     {
       "src": "https://sportality.cdn.s8y.se/team-logos/bik1_bik.svg",
       "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "type": "image/svg+xml"
     }
   ],
-  "categories": ["business", "finance"],
-  "lang": "sv-SE",
-  "dir": "ltr"
+
+  "categories": ["business", "finance", "sales"],
+  "orientation": "any"
 }
