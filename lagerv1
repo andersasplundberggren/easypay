@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BIK Karlskoga – Lager</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary:#1e3c72; --primary-dark:#152a4f; --secondary:#2a5298;
+      --success:#10b981; --danger:#ef4444; --warning:#f59e0b; --info:#3b82f6;
+      --dark:#1f2937; --light:#f9fafb; --border:#e5e7eb;
+      --shadow:0 1px 3px 0 rgb(0 0 0 / 0.1),0 1px 2px -1px rgb(0 0 0 / 0.1);
+      --shadow-lg:0 10px 15px -3px rgb(0 0 0 / 0.1),0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: rgba(255,255,255,.95);
+      backdrop-filter: blur(10px);
+      padding: 1.25rem 1.5rem;
+      border-bottom: 3px solid var(--primary);
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 1.25rem;
+    }
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    }
+    .brand { display: flex; align-items: center; gap: .75rem; }
+    .brand img { width: 40px; height: 40px; }
+    .brand h1 { font-size: 1.25rem; color: var(--dark); }
+    .header-actions a {
+      text-decoration: none; font-weight: 600; font-size: .9rem;
+      color: white; background: var(--primary); padding: .5rem .75rem; border-radius: .5rem;
+      transition: .2s;
+    }
+    .header-actions a:hover { background: var(--primary-dark); transform: translateY(-1px); }
+
+    /* Container */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem 2rem; }
+
+    /* Cards / Panels */
+    .grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 1rem; }
+    @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: white; border-radius: 12px; box-shadow: var(--shadow-lg);
+      padding: 1rem 1rem 1.25rem; transition: .2s;
+    }
+    .card h2 {
+      font-size: 1.05rem; color: var(--dark); margin-bottom: .75rem;
+      display:flex; align-items:center; gap:.5rem;
+    }
+    .card h2::after {
+      content:''; flex:1; height:2px; margin-left: .75rem;
+      background: linear-gradient(90deg, var(--border) 0%, transparent 100%);
+    }
+
+    /* Controls / Forms */
+    .controls { display:flex; gap:.75rem; flex-wrap: wrap; margin-bottom: .75rem; }
+    .controls .search {
+      flex:1 1 260px; display:flex; gap:.5rem;
+      background: white; padding:.5rem; border-radius:.5rem; box-shadow: var(--shadow);
+      border:1px solid var(--border);
+    }
+    .controls input[type="text"] {
+      flex:1; border:none; outline:none; font-size:.95rem;
+    }
+    .refresh-btn {
+      border:none; border-radius:.5rem; padding:.5rem .9rem; font-weight:600; cursor:pointer;
+      background: var(--primary); color:white; transition:.2s;
+    }
+    .refresh-btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
+
+    .form {
+      display: grid; grid-template-columns: 1fr 1fr; gap: .75rem;
+    }
+    .form .row { display: flex; flex-direction: column; gap: .25rem; }
+    .form label { font-size: .8rem; font-weight: 600; color: #374151; }
+    .form select, .form input, .form textarea {
+      border: 1px solid var(--border); border-radius: .5rem; padding: .55rem .6rem;
+      font-size: .95rem; transition: .2s; background: white;
+    }
+    .form select:focus, .form input:focus, .form textarea:focus {
+      outline: none; border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(30, 60, 114, .1);
+    }
+    .form textarea { grid-column: 1 / -1; min-height: 70px; resize: vertical; }
+
+    .form-actions { display:flex; gap:.5rem; margin-top:.5rem; }
+    .btn {
+      border: none; border-radius: .6rem; padding: .6rem .9rem; cursor: pointer;
+      font-weight: 700; font-size: .95rem; transition: .2s; box-shadow: var(--shadow);
+    }
+    .btn:disabled { opacity:.6; cursor:not-allowed; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn-success { background: var(--success); color: white; }
+    .btn-success:hover { filter: brightness(0.95); transform: translateY(-1px); }
+    .btn-warning { background: var(--warning); color: #111827; }
+    .btn-warning:hover { filter: brightness(0.95); transform: translateY(-1px); }
+
+    /* Table */
+    .table { overflow: hidden; }
+    .table .wrap { overflow-x:auto; margin:-.5rem; padding:.5rem; }
+    table { width:100%; border-collapse: separate; border-spacing:0; font-size:.9rem; }
+    thead { background: var(--light); position: sticky; top: 0; z-index: 5; }
+    th, td { padding: .65rem .75rem; border-bottom: 1px solid var(--border); text-align:left; white-space: nowrap; }
+    th:first-child { border-top-left-radius: 8px; } th:last-child { border-top-right-radius: 8px; }
+    tbody tr:hover { background: rgba(30,60,114,.03); }
+
+    /* Status badge */
+    .badge { display:inline-block; padding:.2rem .6rem; font-size:.75rem; font-weight:700; border-radius:9999px; }
+    .ok { background:#d4edda; color:#155724; }
+    .low { background:#fff3cd; color:#856404; }
+    .crit { background:#f8d7da; color:#721c24; }
+    .out { background:#d6d6d6; color:#333; }
+
+    /* Toast */
+    .toast {
+      position: fixed; right: 20px; top: 20px; z-index: 9999;
+      display:none; padding: 12px 16px; border-radius: 10px; font-weight:700; color:white;
+      box-shadow: var(--shadow-lg);
+    }
+    .toast.ok { background: var(--success); }
+    .toast.err { background: var(--danger); }
+    .loading { text-align:center; color:#6b7280; padding:1rem; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <div class="brand">
+        <img src="https://sportality.cdn.s8y.se/team-logos/bik1_bik.svg" alt="BIK">
+        <h1>Lagerhantering</h1>
+      </div>
+      <div class="header-actions">
+        <a href="index.html">← Till startsidan</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <div class="container">
+    <div class="grid">
+      <!-- Left: Stock table -->
+      <div class="card">
+        <h2>Aktuellt lagersaldo</h2>
+
+        <div class="controls">
+          <div class="search">
+            <input id="searchInput" type="text" placeholder="Sök produktnamn...">
+            <button class="refresh-btn" id="refreshBtn">Uppdatera</button>
+          </div>
+        </div>
+
+        <div class="table" id="stockTable">
+          <div class="loading">Hämtar lager...</div>
+        </div>
+      </div>
+
+      <!-- Right: Forms -->
+      <div class="card">
+        <h2>Påfyllning (IN)</h2>
+        <div class="form" id="inForm">
+          <div class="row">
+            <label for="inProduct">Produkt</label>
+            <select id="inProduct"></select>
+          </div>
+          <div class="row">
+            <label for="inQty">Antal</label>
+            <input id="inQty" type="number" min="1" placeholder="t.ex. 24">
+          </div>
+          <div class="row">
+            <label for="inCost">Styckkostnad (valfritt)</label>
+            <input id="inCost" type="number" step="0.01" placeholder="t.ex. 8.50">
+          </div>
+          <div class="row">
+            <label for="inNote">Anteckning</label>
+            <textarea id="inNote" placeholder="Leverans, batch, etc."></textarea>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-success" id="inSubmit">Registrera påfyllning</button>
+          </div>
+        </div>
+
+        <div style="height:1rem"></div>
+
+        <h2>Justering (ADJ)</h2>
+        <div class="form" id="adjForm">
+          <div class="row">
+            <label for="adjProduct">Produkt</label>
+            <select id="adjProduct"></select>
+          </div>
+          <div class="row">
+            <label for="adjQty">Förändring (+/−)</label>
+            <input id="adjQty" type="number" step="1" placeholder="t.ex. -2 för svinn, 5 för korrigering">
+          </div>
+          <div class="row">
+            <label for="adjNote">Anteckning</label>
+            <textarea id="adjNote" placeholder="Inventering, svinn, korrigering..."></textarea>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-warning" id="adjSubmit">Registrera justering</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Sätt denna till din Web App-URL (samma som i kassa/stats)
+    const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwWADYHeT2clN3DSHnIvp-d24APaKiacETGSWK4EecuzjoKru1RbB7a3MsxuqIBrPw/exec';
+
+    let PRODUCTS = [];
+    let STOCK = [];
+    let FILTER = '';
+
+    // UI helpers
+    function toast(msg, type='ok') {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = 'toast ' + (type === 'ok' ? 'ok' : 'err');
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 2500);
+    }
+
+    function formatStatus(onHand, reorderPoint) {
+      if (onHand <= 0) return {text:'SLUT', cls:'out'};
+      if (reorderPoint == null) return {text:'OK', cls:'ok'};
+      if (onHand <= reorderPoint * 0.1) return {text:'KRITISKT', cls:'crit'};
+      if (onHand <= reorderPoint * 0.4) return {text:'LÅGT', cls:'low'};
+      return {text:'OK', cls:'ok'};
+    }
+
+    function renderStockTable() {
+      const container = document.getElementById('stockTable');
+      if (!PRODUCTS.length) {
+        container.innerHTML = '<div class="loading">Inga produkter</div>';
+        return;
+      }
+
+      const summaryById = {};
+      STOCK.forEach(s => summaryById[String(s.product_id)] = s);
+
+      // filter by name
+      const filteredProducts = PRODUCTS.filter(p =>
+        !FILTER || String(p.name || '').toLowerCase().includes(FILTER)
+      );
+
+      let html = `
+        <div class="wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Produkt</th>
+                <th>Kvar (on hand)</th>
+                <th>Beställningspunkt</th>
+                <th>Senast påfyllt</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      filteredProducts.forEach(p => {
+        const pid = String(p.id);
+        const s = summaryById[pid] || {};
+        const onHand = Number(s.on_hand || 0);
+        const rp = s.reorder_point != null ? Number(s.reorder_point) :
+                   (p.reorder_point ? Number(p.reorder_point) : null);
+        const last = s.last_restock_at ? new Date(s.last_restock_at).toLocaleString('sv-SE') : '-';
+        const st = formatStatus(onHand, rp);
+
+        html += `
+          <tr>
+            <td><strong>${p.name}</strong> <span style="opacity:.6;font-size:.8em">(#${pid})</span></td>
+            <td><strong>${onHand}</strong></td>
+            <td>${rp != null ? rp : '-'}</td>
+            <td>${last}</td>
+            <td><span class="badge ${st.cls}">${st.text}</span></td>
+          </tr>
+        `;
+      });
+
+      html += `</tbody></table></div>`;
+      container.innerHTML = html;
+    }
+
+    function populateProductSelects() {
+      const options = PRODUCTS.map(p => `<option value="${p.id}">${p.name} (#${p.id})</option>`).join('');
+      document.getElementById('inProduct').innerHTML = options;
+      document.getElementById('adjProduct').innerHTML = options;
+    }
+
+    async function fetchProducts() {
+      const res = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=getProducts`);
+      const json = await res.json();
+      PRODUCTS = (json && json.data) || [];
+    }
+
+    async function fetchStock() {
+      const res = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=getStockSummary`);
+      const json = await res.json();
+      STOCK = (json && json.data) || [];
+    }
+
+    async function refreshAll() {
+      document.getElementById('stockTable').innerHTML = '<div class="loading">Hämtar lager...</div>';
+      await fetchProducts();
+      await fetchStock();
+      populateProductSelects();
+      renderStockTable();
+    }
+
+    // Hjälpare: hämta aktuellt saldo för en produkt (för bekräftelse efter POST)
+    function onHandFor(pid) {
+      const s = STOCK.find(x => String(x.product_id) === String(pid));
+      return s ? Number(s.on_hand || 0) : 0;
+    }
+
+    // POST helper: undvik preflight (no-cors, inga headers). Svar blir "opaque".
+    async function postJSON(action, payload) {
+      try {
+        await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=${action}`, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: JSON.stringify(payload)
+        });
+        return { ok: true };
+      } catch (e) {
+        return { ok: false, error: e.message };
+      }
+    }
+
+    // Handlers
+    async function handleAddStock() {
+      const pid = document.getElementById('inProduct').value;
+      const qty = Number(document.getElementById('inQty').value);
+      const cost = document.getElementById('inCost').value ? Number(document.getElementById('inCost').value) : undefined;
+      const note = document.getElementById('inNote').value.trim();
+
+      if (!pid) return toast('Välj produkt', 'err');
+      if (!(qty > 0)) return toast('Antal måste vara > 0', 'err');
+
+      const before = onHandFor(pid);
+      const btn = document.getElementById('inSubmit');
+      btn.disabled = true;
+
+      const res = await postJSON('addStock', { product_id: pid, quantity: qty, unit_cost: cost, note });
+      btn.disabled = false;
+
+      if (!res.ok) {
+        return toast(res.error || 'Kunde inte registrera påfyllning', 'err');
+      }
+
+      await refreshAll(); // hämta nytt saldo
+      const after = onHandFor(pid);
+
+      if (after >= before + qty) {
+        toast('Påfyllning registrerad');
+        document.getElementById('inQty').value = '';
+        document.getElementById('inCost').value = '';
+        document.getElementById('inNote').value = '';
+      } else {
+        toast('Kunde inte bekräfta påfyllning – kontrollera deployment och product_id.', 'err');
+      }
+    }
+
+    async function handleAdjustStock() {
+      const pid = document.getElementById('adjProduct').value;
+      const qty = Number(document.getElementById('adjQty').value);
+      const note = document.getElementById('adjNote').value.trim();
+
+      if (!pid) return toast('Välj produkt', 'err');
+      if (!qty) return toast('Ange en förändring (+/−)', 'err');
+
+      const before = onHandFor(pid);
+      const btn = document.getElementById('adjSubmit');
+      btn.disabled = true;
+
+      const res = await postJSON('adjustStock', { product_id: pid, quantity: qty, note });
+      btn.disabled = false;
+
+      if (!res.ok) {
+        return toast(res.error || 'Kunde inte registrera justering', 'err');
+      }
+
+      await refreshAll();
+      const after = onHandFor(pid);
+
+      const ok = (qty > 0 && after >= before + qty) || (qty < 0 && after <= before + qty);
+      if (ok) {
+        toast('Justering registrerad');
+        document.getElementById('adjQty').value = '';
+        document.getElementById('adjNote').value = '';
+      } else {
+        toast('Kunde inte bekräfta justering – kontrollera deployment och product_id.', 'err');
+      }
+    }
+
+    // Events
+    document.addEventListener('DOMContentLoaded', async () => {
+      await refreshAll();
+
+      document.getElementById('refreshBtn').addEventListener('click', refreshAll);
+      document.getElementById('searchInput').addEventListener('input', (e) => {
+        FILTER = String(e.target.value || '').toLowerCase();
+        renderStockTable();
+      });
+
+      document.getElementById('inSubmit').addEventListener('click', handleAddStock);
+      document.getElementById('adjSubmit').addEventListener('click', handleAdjustStock);
+    });
+  </script>
+</body>
+</html>
