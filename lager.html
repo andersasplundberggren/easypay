@@ -12,50 +12,63 @@
     :root {
       --primary:#1e3c72; --primary-dark:#152a4f; --secondary:#2a5298;
       --success:#10b981; --danger:#ef4444; --warning:#f59e0b; --info:#3b82f6;
-      --dark:#1f2937; --light:#f9fafb; --border:#e5e7eb;
+      --dark:#1f2937; --light:#f9fafb; --border:#e5e7eb; --muted:#6b7280;
       --shadow:0 1px 3px 0 rgb(0 0 0 / 0.1),0 1px 2px -1px rgb(0 0 0 / 0.1);
       --shadow-lg:0 10px 15px -3px rgb(0 0 0 / 0.1),0 4px 6px -4px rgb(0 0 0 / 0.1);
     }
+
+    /* Reducera animationer om användaren önskar */
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; animation: none !important; }
+    }
+
     body {
       font-family: 'Inter', sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
+      color: #111827;
     }
 
     /* Header */
     .header {
+      position: sticky; top: 0; z-index: 50;
       background: rgba(255,255,255,.95);
       backdrop-filter: blur(10px);
-      padding: 1.25rem 1.5rem;
+      padding: 1rem 1rem;
       border-bottom: 3px solid var(--primary);
       box-shadow: var(--shadow-lg);
-      margin-bottom: 1.25rem;
+      margin-bottom: 1rem;
     }
     .header-content {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+      max-width: 1200px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr auto; gap: .75rem; align-items: center;
     }
-    .brand { display: flex; align-items: center; gap: .75rem; }
+    @media (max-width: 520px){
+      .header-content { grid-template-columns: 1fr; }
+    }
+    .brand { display: flex; align-items: center; gap: .75rem; min-width: 0; }
     .brand img { width: 40px; height: 40px; }
-    .brand h1 { font-size: 1.25rem; color: var(--dark); }
+    .brand h1 { font-size: 1.2rem; color: var(--dark); white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+    .header-actions { justify-self: end; }
     .header-actions a {
-      text-decoration: none; font-weight: 600; font-size: .9rem;
-      color: white; background: var(--primary); padding: .5rem .75rem; border-radius: .5rem;
-      transition: .2s;
+      text-decoration: none; font-weight: 700; font-size: .92rem;
+      color: white; background: var(--primary); padding: .55rem .9rem; border-radius: .6rem;
+      transition: .18s;
     }
     .header-actions a:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .header-actions a:focus-visible { outline: 3px solid rgba(30,60,114,.3); outline-offset: 2px; }
 
     /* Container */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem 2rem; }
 
     /* Cards / Panels */
     .grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 1rem; }
-    @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
+    @media (max-width: 1024px) { .grid { grid-template-columns: 1fr; } }
 
     .card {
-      background: white; border-radius: 12px; box-shadow: var(--shadow-lg);
-      padding: 1rem 1rem 1.25rem; transition: .2s;
+      background: white; border-radius: 14px; box-shadow: var(--shadow-lg);
+      padding: 1rem 1rem 1.25rem; transition: .18s;
+      min-width: 0;
     }
     .card h2 {
       font-size: 1.05rem; color: var(--dark); margin-bottom: .75rem;
@@ -70,37 +83,40 @@
     .controls { display:flex; gap:.75rem; flex-wrap: wrap; margin-bottom: .75rem; }
     .controls .search {
       flex:1 1 260px; display:flex; gap:.5rem;
-      background: white; padding:.5rem; border-radius:.5rem; box-shadow: var(--shadow);
+      background: white; padding:.5rem; border-radius:.6rem; box-shadow: var(--shadow);
       border:1px solid var(--border);
     }
     .controls input[type="text"] {
-      flex:1; border:none; outline:none; font-size:.95rem;
+      flex:1; border:none; outline:none; font-size:.95rem; min-width: 120px;
     }
     .refresh-btn {
-      border:none; border-radius:.5rem; padding:.5rem .9rem; font-weight:600; cursor:pointer;
-      background: var(--primary); color:white; transition:.2s;
+      border:none; border-radius:.6rem; padding:.55rem .9rem; font-weight:800; cursor:pointer;
+      background: var(--primary); color:white; transition:.18s;
     }
     .refresh-btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .refresh-btn:focus-visible { outline: 3px solid rgba(30,60,114,.3); outline-offset: 2px; }
 
     .form {
       display: grid; grid-template-columns: 1fr 1fr; gap: .75rem;
     }
-    .form .row { display: flex; flex-direction: column; gap: .25rem; }
-    .form label { font-size: .8rem; font-weight: 600; color: #374151; }
+    @media (max-width: 640px){ .form { grid-template-columns: 1fr; } }
+    .form .row { display: flex; flex-direction: column; gap: .3rem; min-width: 0; }
+    .form label { font-size: .8rem; font-weight: 700; color: #374151; }
     .form select, .form input, .form textarea {
-      border: 1px solid var(--border); border-radius: .5rem; padding: .55rem .6rem;
-      font-size: .95rem; transition: .2s; background: white;
+      border: 1px solid var(--border); border-radius: .6rem; padding: .6rem .65rem;
+      font-size: .95rem; transition: .18s; background: white;
     }
     .form select:focus, .form input:focus, .form textarea:focus {
       outline: none; border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(30, 60, 114, .1);
+      box-shadow: 0 0 0 3px rgba(30, 60, 114, .12);
     }
-    .form textarea { grid-column: 1 / -1; min-height: 70px; resize: vertical; }
+    .form textarea { grid-column: 1 / -1; min-height: 80px; resize: vertical; }
 
-    .form-actions { display:flex; gap:.5rem; margin-top:.5rem; }
+    .form-actions { display:flex; gap:.6rem; margin-top:.25rem; flex-wrap: wrap; }
     .btn {
-      border: none; border-radius: .6rem; padding: .6rem .9rem; cursor: pointer;
-      font-weight: 700; font-size: .95rem; transition: .2s; box-shadow: var(--shadow);
+      border: none; border-radius: .7rem; padding: .65rem 1rem; cursor: pointer;
+      font-weight: 900; font-size: .95rem; transition: .18s; box-shadow: var(--shadow);
+      touch-action: manipulation;
     }
     .btn:disabled { opacity:.6; cursor:not-allowed; }
     .btn-primary { background: var(--primary); color: white; }
@@ -111,16 +127,18 @@
     .btn-warning:hover { filter: brightness(0.95); transform: translateY(-1px); }
 
     /* Table */
-    .table { overflow: hidden; }
-    .table .wrap { overflow-x:auto; margin:-.5rem; padding:.5rem; }
-    table { width:100%; border-collapse: separate; border-spacing:0; font-size:.9rem; }
+    .table { overflow: hidden; border-radius: 12px; border:1px solid var(--border); }
+    .table .wrap { overflow:auto; margin:-.5rem; padding:.5rem; }
+    table { width:100%; border-collapse: separate; border-spacing:0; font-size:.9rem; min-width: 640px; }
     thead { background: var(--light); position: sticky; top: 0; z-index: 5; }
     th, td { padding: .65rem .75rem; border-bottom: 1px solid var(--border); text-align:left; white-space: nowrap; }
     th:first-child { border-top-left-radius: 8px; } th:last-child { border-top-right-radius: 8px; }
     tbody tr:hover { background: rgba(30,60,114,.03); }
+    /* Gör första kolumnen mer flexibel på små skärmar */
+    td:first-child { max-width: 360px; white-space: normal; }
 
     /* Status badge */
-    .badge { display:inline-block; padding:.2rem .6rem; font-size:.75rem; font-weight:700; border-radius:9999px; }
+    .badge { display:inline-block; padding:.25rem .6rem; font-size:.75rem; font-weight:800; border-radius:9999px; }
     .ok { background:#d4edda; color:#155724; }
     .low { background:#fff3cd; color:#856404; }
     .crit { background:#f8d7da; color:#721c24; }
@@ -128,13 +146,14 @@
 
     /* Toast */
     .toast {
-      position: fixed; right: 20px; top: 20px; z-index: 9999;
-      display:none; padding: 12px 16px; border-radius: 10px; font-weight:700; color:white;
-      box-shadow: var(--shadow-lg);
+      position: fixed; right: 16px; top: 16px; z-index: 9999;
+      display:none; padding: 12px 16px; border-radius: 10px; font-weight:800; color:white;
+      box-shadow: var(--shadow-lg); max-width: 80vw;
     }
     .toast.ok { background: var(--success); }
     .toast.err { background: var(--danger); }
-    .loading { text-align:center; color:#6b7280; padding:1rem; }
+
+    .loading { text-align:center; color:var(--muted); padding:1rem; }
   </style>
 </head>
 <body>
@@ -146,24 +165,24 @@
         <h1>Lagerhantering</h1>
       </div>
       <div class="header-actions">
-        <a href="index.html">← Till startsidan</a>
+        <a href="index.html" aria-label="Till startsidan">← Till startsidan</a>
       </div>
     </div>
   </div>
 
   <!-- Toast -->
-  <div id="toast" class="toast"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <div class="container">
     <div class="grid">
       <!-- Left: Stock table -->
-      <div class="card">
-        <h2>Aktuellt lagersaldo</h2>
+      <div class="card" aria-labelledby="lagersaldo">
+        <h2 id="lagersaldo">Aktuellt lagersaldo</h2>
 
         <div class="controls">
-          <div class="search">
-            <input id="searchInput" type="text" placeholder="Sök produktnamn...">
-            <button class="refresh-btn" id="refreshBtn">Uppdatera</button>
+          <div class="search" role="search">
+            <input id="searchInput" type="text" placeholder="Sök produktnamn..." aria-label="Sök produkt">
+            <button class="refresh-btn" id="refreshBtn" type="button">Uppdatera</button>
           </div>
         </div>
 
@@ -173,8 +192,8 @@
       </div>
 
       <!-- Right: Forms -->
-      <div class="card">
-        <h2>Påfyllning (IN)</h2>
+      <div class="card" aria-labelledby="pafyllning">
+        <h2 id="pafyllning">Påfyllning (IN)</h2>
         <div class="form" id="inForm">
           <div class="row">
             <label for="inProduct">Produkt</label>
@@ -182,18 +201,18 @@
           </div>
           <div class="row">
             <label for="inQty">Antal</label>
-            <input id="inQty" type="number" min="1" placeholder="t.ex. 24">
+            <input id="inQty" type="number" min="1" placeholder="t.ex. 24" inputmode="numeric">
           </div>
           <div class="row">
             <label for="inCost">Styckkostnad (valfritt)</label>
-            <input id="inCost" type="number" step="0.01" placeholder="t.ex. 8.50">
+            <input id="inCost" type="number" step="0.01" placeholder="t.ex. 8.50" inputmode="decimal">
           </div>
           <div class="row">
             <label for="inNote">Anteckning</label>
             <textarea id="inNote" placeholder="Leverans, batch, etc."></textarea>
           </div>
           <div class="form-actions">
-            <button class="btn btn-success" id="inSubmit">Registrera påfyllning</button>
+            <button class="btn btn-success" id="inSubmit" type="button">Registrera påfyllning</button>
           </div>
         </div>
 
@@ -207,14 +226,14 @@
           </div>
           <div class="row">
             <label for="adjQty">Förändring (+/−)</label>
-            <input id="adjQty" type="number" step="1" placeholder="t.ex. -2 för svinn, 5 för korrigering">
+            <input id="adjQty" type="number" step="1" placeholder="t.ex. -2 för svinn, 5 för korrigering" inputmode="numeric">
           </div>
           <div class="row">
             <label for="adjNote">Anteckning</label>
             <textarea id="adjNote" placeholder="Inventering, svinn, korrigering..."></textarea>
           </div>
           <div class="form-actions">
-            <button class="btn btn-warning" id="adjSubmit">Registrera justering</button>
+            <button class="btn btn-warning" id="adjSubmit" type="button">Registrera justering</button>
           </div>
         </div>
       </div>
@@ -262,7 +281,7 @@
       );
 
       let html = `
-        <div class="wrap">
+        <div class="wrap" tabindex="0" aria-label="Tabell med lagersaldo, rulla horisontellt vid behov">
           <table>
             <thead>
               <tr>
