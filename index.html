@@ -3,261 +3,182 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>BIK Karlskoga - Kassasystem</title>
-  <meta name="description" content="BIK Karlskoga kassasystem: kassa, försäljningsstatistik och lagerhantering. Byggt som PoC med Google Sheets som datalager." />
+  <title>BIK Karlskoga – Kassasystem</title>
   <meta name="theme-color" content="#1e3c72" />
 
-  <!-- Fonts: preconnect + Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg1: #1e3c72;
-      --bg2: #2a5298;
-      --cardTop: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-      --textDark: #1e3c72;
-      --text: #555;
-      --muted: #666;
-      --surface: #ffffff;
-    }
-
+    /* Bas */
+    *, *::before, *::after { box-sizing: border-box; }
     html, body { height: 100%; }
-
+    html, body { overflow-x: hidden; } /* förhindra sidoförskjutning */
     body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
-      min-height: 100vh;
-      /* Viktigt: ta bort vertikal centrering så sidan får scrolla naturligt */
-      /* display:flex; align-items:center; justify-content:center;  <-- bort */
-      padding: 20px;
-      color: #111;
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+      background: #f4f6f9;
+      color: #111827;
     }
 
-    .container { width: 100%; max-width: 960px; margin: 0 auto; }
+    /* Layout */
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 24px;
+    }
 
-    header.header {
+    header {
       text-align: center;
-      color: white;
-      margin-bottom: 3rem;
+      margin: 12px 0 24px;
+    }
+    header .logo {
+      width: 96px; height: 96px; display: block; margin: 0 auto 12px;
+    }
+    header h1 {
+      margin: 0 0 6px;
+      font-size: clamp(1.5rem, 2.5vw, 2rem);
+      font-weight: 800;
+      color: #1e3c72;
+    }
+    header p {
+      margin: 0;
+      color: #4b5563;
+      font-size: 0.975rem;
     }
 
-    .logo {
-      width: 120px; height: 120px;
-      margin-bottom: 1.5rem;
-      filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
-    }
-
-    .header h1 {
-      font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem;
-      text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
-    }
-
-    .header p {
-      font-size: 1.2rem; opacity: 0.9; font-weight: 300;
-    }
-
-    main .cards {
+    /* Kortgriden */
+    .cards {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 2rem;
-      margin-bottom: 2rem;
-      /* Gör att alla kort sträcks lika högt men får växa efter innehåll */
-      align-items: stretch;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+      margin-top: 22px;
     }
 
-    @media (max-width: 992px) {
-      main .cards { grid-template-columns: 1fr 1fr; }
-    }
-
-    @media (max-width: 768px) {
-      .header h1 { font-size: 2rem; }
-      .header p { font-size: 1rem; }
-      .logo { width: 90px; height: 90px; }
-      main .cards { grid-template-columns: 1fr; gap: 1.5rem; }
-    }
-
+    /* Kort */
     .card {
-      background: var(--surface);
-      border-radius: 20px;
-      padding: 2.5rem;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      display: block;
       text-decoration: none;
       color: inherit;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      position: relative;
-      /* Viktigt: låt innehållet synas även om det blir högt */
-      overflow: visible; /* tidigare hidden */
-      outline: none;
-
-      /* Gör korten flex-kolumner så innehåll kan rada upp sig naturligt */
-      display: flex;
-      flex-direction: column;
-      height: 100%;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 18px;
+      min-height: 180px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+      transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
     }
-
-    .card::before {
-      content: '';
-      position: absolute; inset: 0 0 auto 0;
-      height: 5px; background: var(--cardTop);
-    }
-
-    .card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 30px 60px rgba(0,0,0,0.3);
-    }
-
-    /* Respektera 'reduced motion' */
-    @media (prefers-reduced-motion: reduce) {
-      .card { transition: box-shadow 0.001s linear; }
-      .card:hover { transform: none; }
-    }
-
     .card:focus-visible {
-      box-shadow: 0 0 0 4px rgba(102,126,234,0.45), 0 20px 40px rgba(0,0,0,0.2);
+      outline: 3px solid rgba(102,126,234,.45);
+      outline-offset: 2px;
+    }
+    @media (hover:hover) {
+      .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        border-color: #d1d5db;
+      }
     }
 
-    .card-icon {
-      font-size: 3rem; margin-bottom: 1rem; display: block;
+    .card .icon {
+      font-size: 28px;
       line-height: 1;
+      margin-bottom: 8px;
     }
-
     .card h2 {
-      color: var(--textDark);
-      font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem;
+      margin: 0 0 6px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #1e3c72;
     }
-
     .card p {
-      color: var(--muted);
-      font-size: 1rem; line-height: 1.6; margin-bottom: 1.5rem;
-
-      /* Säkerställ att långa ord/emojis inte klipps */
-      overflow-wrap: anywhere;
-      word-break: break-word;
+      margin: 0 0 12px;
+      color: #4b5563;
+      line-height: 1.5;
+      overflow-wrap: anywhere; /* inget klipp */
     }
-
-    .card-link {
-      display: inline-flex; align-items: center; gap: 0.5rem;
-      color: #667eea; font-weight: 600; font-size: 0.95rem; text-decoration: none;
-      margin-bottom: 0.75rem;
-    }
-    .card-link::after { content: '→'; transition: transform 0.3s ease; }
-    .card:hover .card-link::after { transform: translateX(5px); }
-
-    .features {
+    .meta {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 1rem; margin-top: 1rem;
-      /* Låt features följa med i flödet utan att pressa ut texten */
+      gap: 8px;
     }
-    @media (max-width: 768px) {
-      .features { grid-template-columns: 1fr; }
+    .pill {
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: #374151;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
     }
 
-    .feature {
-      display: flex; align-items: center; gap: 0.75rem;
-      padding: 1rem; background: #f8f9fa; border-radius: 10px;
-      font-size: 0.9rem; color: #555;
-    }
-
-    .feature-icon { font-size: 1.5rem; flex-shrink: 0; line-height: 1; }
-
-    footer.footer {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border-radius: 15px;
-      padding: 1.5rem;
+    /* Footer */
+    footer {
+      margin-top: 28px;
       text-align: center;
-      color: white;
+      color: #6b7280;
+      font-size: 0.9rem;
     }
+    footer a {
+      color: #1e3c72;
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(30,60,114,.35);
+    }
+    footer a:hover { border-bottom-style: solid; }
 
-    .footer p { margin: 0; font-size: 0.9rem; opacity: 0.9; }
-    .footer a {
-      color: white; text-decoration: none; font-weight: 600;
-      border-bottom: 2px solid rgba(255,255,255,0.3);
-      transition: border-color 0.3s ease;
-    }
-    .footer a:hover { border-bottom-color: white; }
-
-    .footer a:focus-visible {
-      outline: 3px solid rgba(255,255,255,0.8);
-      outline-offset: 2px;
-      border-bottom-color: white;
-    }
+    /* Media som inte spränger layouten */
+    img, svg { max-width: 100%; height: auto; }
   </style>
 </head>
 <body>
   <div class="container">
-    <header class="header" role="banner">
+    <header>
       <img
+        class="logo"
         src="https://sportality.cdn.s8y.se/team-logos/bik1_bik.svg"
         alt="BIK Karlskoga"
-        class="logo"
-        width="120"
-        height="120"
-        loading="lazy"
       />
       <h1>BIK Karlskoga</h1>
-      <p>Kassasystem &amp; Försäljningsstatistik</p>
+      <p>Kassa, statistik och lager – enkelt för 3–4 kassor</p>
     </header>
 
-    <main id="main" tabindex="-1">
-      <nav class="cards" aria-label="Huvudnavigering">
-        <!-- Kassa -->
-        <a href="kassa.html" class="card">
-          <span class="card-icon" aria-hidden="true">🛒</span>
+    <main>
+      <div class="cards" aria-label="Huvudnavigering">
+        <a class="card" href="kassa.html">
+          <div class="icon" aria-hidden="true">🛒</div>
           <h2>Kassasystem</h2>
-          <p>Registrera försäljning, skapa Swish QR-koder och generera digitala kvitton.</p>
-          <span class="card-link">Öppna kassan</span>
-
-          <div class="features">
-            <div class="feature"><span class="feature-icon" aria-hidden="true">💳</span><span>Swish-betalning</span></div>
-            <div class="feature"><span class="feature-icon" aria-hidden="true">🧾</span><span>Digitala kvitton</span></div>
-            <div class="feature"><span class="feature-icon" aria-hidden="true">📱</span><span>Mobilanpassad</span></div>
-            <div class="feature"><span class="feature-icon" aria-hidden="true">⚡</span><span>Snabb hantering</span></div>
+          <p>Registrera försäljning och skapa Swish-QR. Kvitto digitalt eller utskrift.</p>
+          <div class="meta">
+            <span class="pill">💳 Swish</span>
+            <span class="pill">🧾 Kvitto</span>
           </div>
         </a>
 
-        <!-- Statistik -->
-        <a href="stats.html" class="card">
-          <span class="card-icon" aria-hidden="true">📊</span>
+        <a class="card" href="stats.html">
+          <div class="icon" aria-hidden="true">📊</div>
           <h2>Försäljningsstatistik</h2>
-          <p>Visa försäljningsdata, generera rapporter och analysera försäljningstrender.</p>
-          <span class="card-link">Visa statistik</span>
-
-          <div class="features">
-            <div class="feature"><span class="feature-icon" aria-hidden="true">📈</span><span>Grafer &amp; diagram</span></div>
-            <div class="feature"><span class="feature-icon" aria-hidden="true">📄</span><span>Excel-export</span></div>
-            <div class="feature"><span class="feature-icon" aria-hidden="true">🔍</span><span>Avancerade filter</span></div>
-            <div class="feature"><span class="feature-icon" aria-hidden="true">🖨️</span><span>Utskriftsvänlig</span></div>
+          <p>Se trender, topprodukter och exportera till Excel/CSV.</p>
+          <div class="meta">
+            <span class="pill">📈 Grafer</span>
+            <span class="pill">📄 Export</span>
           </div>
         </a>
 
-        <!-- Lager/Admin -->
-        <a href="lager.html" class="card">
-          <span class="card-icon" aria-hidden="true">📦</span>
-          <h2>Lager &amp; Inleverans</h2>
-          <p>Ta emot varor, justera saldo och se lagerrörelser. Enkelt kopplat till kassan.</p>
-          <span class="card-link">Öppna lager</span>
-
-          <div class="features">
-            <div class="feature"><span class="feature-icon" aria-hidden="true">➕</span><span>Inleveranser</span></div>
-            <div class="feature"><span class="feature-icon" aria-hidden="true">🔁</span><span>Lagerrörelser</span></div>
-            <div class="feature"><span class="feature-icon" aria-hidden="true">🧮</span><span>Automatisk differens</span></div>
-            <div class="feature"><span class="feature-icon" aria-hidden="true">🛡️</span><span>Spårbarhet</span></div>
+        <a class="card" href="lager.html">
+          <div class="icon" aria-hidden="true">📦</div>
+          <h2>Lager</h2>
+          <p>Aktuell saldoöversikt, påfyllning och justeringar.</p>
+          <div class="meta">
+            <span class="pill">🔄 Rörelser</span>
+            <span class="pill">✅ Status</span>
           </div>
         </a>
-      </nav>
+      </div>
     </main>
 
-    <footer class="footer" role="contentinfo">
-      <p>
-        Byggt med Google Sheets som backend |
-        <a href="https://github.com/andersasplundberggren/easypay" target="_blank" rel="noopener">GitHub</a>
-      </p>
+    <footer>
+      Byggt med Google Sheets som backend ·
+      <a href="https://github.com/andersasplundberggren/easypay" target="_blank" rel="noopener">GitHub</a>
     </footer>
   </div>
 </body>
