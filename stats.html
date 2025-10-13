@@ -511,7 +511,7 @@
                 const startDate = document.getElementById('startDate').value;
                 const endDate = document.getElementById('endDate').value;
                 if (!startDate || !endDate) { alert('Välj både start- och slutdatum'); return; }
-                document.getElementById('tableContent').innerHTML = '<div class="loading">Laddar transaktioner från Google Sheets...</div>';
+                document.getElementById('tableContent').innerHTML = '<div class="loading">Laddar transaktioner...</div>';
                 const url = `${GOOGLE_APPS_SCRIPT_URL}?action=getPurchases&startDate=${startDate}&endDate=${endDate}`;
                 const response = await fetch(url);
                 const result = await response.json();
@@ -526,7 +526,7 @@
             } catch (error) {
                 console.error('Fel vid laddning av statistik:', error);
                 document.getElementById('tableContent').innerHTML = 
-                    `<div class="error">Kunde inte ladda statistik från Google Sheets: ${error.message}</div>`;
+                    `<div class="error">Kunde inte ladda statistik just nu, testa igen om en liten stund: ${error.message}</div>`;
             }
         }
         
